@@ -1,25 +1,17 @@
-/**
- * Custom Dropdown Control Styles
- * Supports Arabic text (RTL) and modern UI design
- */
-
-/* Global box-sizing for consistent layout */
 .custom-ddl *,
 .custom-ddl *::before,
 .custom-ddl *::after {
     box-sizing: border-box;
 }
 
-/* Base container styling */
 .container {
     max-width: 400px;
     margin: 2rem auto;
     padding: 1rem;
     font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-    direction: rtl; /* Right-to-left for Arabic */
+    direction: rtl; 
 }
 
-/* Label styling */
 label {
     display: block;
     font-weight: 600;
@@ -29,7 +21,6 @@ label {
     text-align: right;
 }
 
-/* Main dropdown wrapper */
 .custom-ddl {
     position: relative;
     width: 100%;
@@ -50,7 +41,6 @@ label {
     box-shadow: 0 0 0 3px rgba(52, 152, 219, 0.2);
 }
 
-/* Dropdown header (clickable trigger) */
 .ddl-header {
     padding: 12px 16px;
     cursor: pointer;
@@ -61,10 +51,26 @@ label {
     position: relative;
     user-select: none;
     transition: background-color 0.2s ease;
+    
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    max-width: 100%;
+    text-align: right; 
 }
 
 .ddl-header:hover {
     background-color: #f8f9fa;
+}
+
+.ddl-header.has-selections {
+    color: #1976d2;
+    font-weight: 600;
+    background-color: #f0f8ff;
+}
+
+.ddl-header.has-selections:hover {
+    background-color: #e3f2fd;
 }
 
 .ddl-header::after {
@@ -82,7 +88,6 @@ label {
     transform: translateY(-50%) rotate(180deg);
 }
 
-/* Options container */
 .ddl-options {
     position: absolute;
     top: 100%;
@@ -99,12 +104,10 @@ label {
     transition: all 0.3s ease;
 }
 
-/* Hidden state */
 .ddl-options.hidden {
     display: none;
 }
 
-/* Scrollbar styling */
 .ddl-options::-webkit-scrollbar {
     width: 6px;
 }
@@ -123,14 +126,12 @@ label {
     background: #95a5a6;
 }
 
-/* Button container - displays buttons side by side */
 .ddl-button-container {
     display: flex;
     gap: 0;
     border-bottom: 1px solid #f0f0f0;
 }
 
-/* General button styling */
 .ddl-btn {
     flex: 1;
     padding: 10px 16px;
@@ -153,7 +154,6 @@ label {
     transform: translateY(0);
 }
 
-/* Select All button */
 .ddl-btn.select-all {
     background-color: #e8f5e8;
     color: #27ae60;
@@ -165,7 +165,6 @@ label {
     color: #1e8449;
 }
 
-/* Clear All button */
 .ddl-btn.clear-all {
     background-color: #fdeaea;
     color: #e74c3c;
@@ -177,7 +176,6 @@ label {
     color: #c0392b;
 }
 
-/* Search input box */
 .ddl-search {
     width: 100%;
     padding: 12px 16px;
@@ -189,7 +187,7 @@ label {
     text-align: right;
     outline: none;
     transition: border-color 0.3s ease;
-    box-sizing: border-box; /* Include padding in width calculation */
+    box-sizing: border-box; 
 }
 
 .ddl-search:focus {
@@ -202,7 +200,6 @@ label {
     font-style: italic;
 }
 
-/* Tree view parent container */
 .ddl-parent {
     border-bottom: 1px solid #f0f0f0;
 }
@@ -211,7 +208,6 @@ label {
     border-bottom: none;
 }
 
-/* Parent label (clickable to expand/collapse) */
 .ddl-parent-label {
     padding: 12px 16px;
     cursor: pointer;
@@ -221,6 +217,10 @@ label {
     transition: all 0.2s ease;
     position: relative;
     user-select: none;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    min-height: 44px; 
 }
 
 .ddl-parent-label:hover {
@@ -228,9 +228,8 @@ label {
     color: #3498db;
 }
 
-/* Expand/collapse arrow for parents with children */
-.ddl-parent-label::after {
-    content: "◀";
+.ddl-parent-label.has-children::after {
+    content: "▼";
     position: absolute;
     left: 16px;
     top: 50%;
@@ -240,11 +239,10 @@ label {
     transition: transform 0.3s ease;
 }
 
-.ddl-parent-label[aria-expanded="true"]::after {
-    transform: translateY(-50%) rotate(-90deg);
+.ddl-parent-label.has-children.expanded::after {
+    transform: translateY(-50%) rotate(180deg);
 }
 
-/* Children container */
 .ddl-children {
     background-color: #fafbfc;
     transition: all 0.3s ease;
@@ -254,7 +252,6 @@ label {
     display: none;
 }
 
-/* Individual child items */
 .ddl-child {
     padding: 10px 16px 10px 48px; /* Extra left padding for indentation */
     cursor: pointer;
@@ -263,12 +260,118 @@ label {
     transition: all 0.2s ease;
     border-bottom: 1px solid #ecf0f1;
     font-size: 0.9rem;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+
+.ddl-checkbox {
+    width: 16px;
+    height: 16px;
+    margin: 0 8px 0 0; 
+    cursor: pointer;
+    accent-color: #3498db;
+    flex-shrink: 0;
+}
+
+
+
+/* Label text styling */
+.ddl-label-text {
+    flex: 1;
+    user-select: none;
+    cursor: pointer;
+    text-align: right;
+    padding: 2px 4px;
+    min-height: 20px; 
+}
+
+.ddl-parent-label:hover .ddl-checkbox,
+.ddl-child:hover .ddl-checkbox {
+    transform: scale(1.1);
+    transition: transform 0.2s ease;
+}
+
+.ddl-checkbox:focus {
+    outline: 2px solid #3498db;
+    outline-offset: 2px;
+}
+
+.ddl-selected-container {
+    margin-top: 10px;
+    padding: 12px;
+    background-color: #f8f9fa;
+    border: 1px solid #e1e8ed;
+    border-radius: 6px;
+    font-size: 0.9rem;
+}
+
+.ddl-selected-label {
+    font-weight: 600;
+    color: #2c3e50;
+    margin-bottom: 8px;
+    text-align: right;
+}
+
+.ddl-selected-content {
+    color: #5a6c7d;
+    line-height: 1.5;
+    text-align: right;
+    white-space: pre-line; 
+    min-height: 20px;
+}
+
+.ddl-selected-content:empty::before {
+    content: "لا يوجد عناصر مختارة";
+    color: #95a5a6;
+    font-style: italic;
+}
+
+.ddl-option.ddl-selected {
+    background-color: #e3f2fd;
+    color: #1976d2;
+    font-weight: 600;
+}
+
+.ddl-option {
+    cursor: pointer;
+    transition: background-color 0.2s ease;
+}
+
+.ddl-option:hover {
+    background-color: #f5f5f5;
+}
+
+.ddl-parent-label.ddl-option {
+    cursor: pointer;
+}
+
+.ddl-parent-label.ddl-option:hover {
+    background-color: #f0f8ff;
+}
+
+.ddl-parent-label:not(.ddl-option) {
+    cursor: pointer; 
+}
+
+.ddl-parent-label:not(.ddl-option):hover {
+    background-color: #f8f9fa; 
 }
 
 .ddl-child:hover {
     background-color: #e8f4f8;
     color: #2980b9;
-    padding-left: 52px; /* Slight animation on hover */
+    padding-left: 52px;
+}
+
+.ddl-child.ddl-option {
+    cursor: pointer;
+}
+
+.ddl-child.ddl-option:hover {
+    background-color: #e3f2fd;
+    color: #1976d2;
 }
 
 .ddl-child:last-child {
@@ -282,7 +385,6 @@ label {
     border-left: 3px solid #3498db;
 }
 
-/* Option items (for future implementation) */
 .ddl-option {
     padding: 10px 16px;
     cursor: pointer;
@@ -311,7 +413,22 @@ label {
     background-color: #f8f9fa;
 }
 
-/* Responsive design */
+.ddl-placeholder-option {
+    pointer-events: none;
+    opacity: 0.6;
+    font-style: italic;
+    color: #95a5a6 !important;
+    padding: 12px 16px;
+    border-bottom: 1px solid #ecf0f1;
+    background-color: #f8f9fa !important;
+    cursor: not-allowed;
+}
+
+.ddl-placeholder-option:hover {
+    background-color: #f8f9fa !important;
+    color: #95a5a6 !important;
+}
+
 @media (max-width: 480px) {
     .container {
         margin: 1rem;
@@ -330,7 +447,6 @@ label {
     }
 }
 
-/* Loading state (for future use) */
 .custom-ddl.loading .ddl-header {
     opacity: 0.6;
     cursor: wait;
@@ -346,7 +462,6 @@ label {
     to { transform: translateY(-50%) rotate(360deg); }
 }
 
-/* Error state */
 .custom-ddl.error {
     border-color: #e74c3c;
     box-shadow: 0 0 0 3px rgba(231, 76, 60, 0.2);
