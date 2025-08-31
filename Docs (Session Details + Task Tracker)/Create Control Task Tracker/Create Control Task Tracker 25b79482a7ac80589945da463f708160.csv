@@ -1,0 +1,32 @@
+﻿Task name,Task type,Assignee,Due date,Status,Actual Consumed Time,Estimated Time,Priority,Effort level,Notes
+0.1 Notion creation & Summarizing session 2 details + creating task tracker + sending emails,0. Initialization,Abdulrahman Ahmed,08/26/2025,Done,4 ~ 4.5 hrs,5 hrs,High,Large,
+"1.1 Analyze requirements, clarify use cases, finalize features",1. Requirements & Design,Abdulrahman Ahmed,08/27/2025,Done,0.7 hrs,1 hrs,High,Medium,
+1.2 Define JSON schema for data,1. Requirements & Design,Abdulrahman Ahmed,08/27/2025,Done,0.3 hrs,2 hrs,High,Small,
+"1.3 Plan DOM structure  ",1. Requirements & Design,Abdulrahman Ahmed,08/27/2025,Done,0.5 hrs,2 hrs,High,Medium,
+"1.4 Define unique ID naming convention   ",1. Requirements & Design,Abdulrahman Ahmed,08/27/2025,Done,0.5 hrs,0.5 hrs,High,Small,Done with Dawood
+2.1 Create project file structure,2. Project Setup,Abdulrahman Ahmed,08/27/2025,Done,"0.3 hrs   ",0.3 hrs,High,Small,
+3.1 Prepare and add hierarchical data in data.json,3. Core Control Initialization,Abdulrahman Ahmed,08/27/2025,Done,0.2 hrs,Didn’t Estimate It,High,Small,
+3.2 Create literal object CustomControl with initialize(params) method,3. Core Control Initialization,Abdulrahman Ahmed,08/27/2025,Done,0.5 hrs,1.5 hrs,High,Medium,
+"3.3 Render base container   ",3. Core Control Initialization,Abdulrahman Ahmed,08/27/2025,Done,0.6 hrs,1.5 hrs,High,Small,
+4.1 Load JSON data (simulate API call from local JSON server),4. Data Handling,Abdulrahman Ahmed,08/27/2025,Done,0.2 hrs,1 hrs,High,Small,
+4.2 Parse JSON into parent/child structure & create renderOptions method to be used in renderBase,4. Data Handling,Abdulrahman Ahmed,08/27/2025,Done,0.4 hrs,1 hrs,High,Medium,
+4.3 Implement ID generator function & create method to validate IDs,4. Data Handling,Abdulrahman Ahmed,08/27/2025,Done,0.6 hrs,1 hrs,High,Medium,
+5.1 Regular dropdown,5. Dropdown Variants,Abdulrahman Ahmed,08/28/2025,Done,0.4 hrs,2 hrs,High,Medium,
+"5.2 Searchable dropdown (search input, filter logic on keyup)",5. Dropdown Variants,Abdulrahman Ahmed,08/28/2025,Done,1.1 hrs,2.5 hrs,High,Medium,
+5.3 Multi selection dropdown (select multiple + show selections),5. Dropdown Variants,Abdulrahman Ahmed,08/28/2025,Done,1.2 hrs,3 hrs,High,Medium,
+"5.4 Tree-view dropdown (expand/collapse, parent/child selection logic, display format) ",5. Dropdown Variants,Abdulrahman Ahmed,08/28/2025,Done,2 hrs,5 hrs,High,Large,
+"6.1 Placeholder handling dynamic updates   ",6.     UI/UX Behavior,Abdulrahman Ahmed,08/28/2025,Done,0.4 hrs,1 hrs,Low,Medium,Waiting For Eng. Ali Confirmation (Refactoring) → CONFIRMED
+6.2 Close dropdown when clicking outside,6.     UI/UX Behavior,Abdulrahman Ahmed,08/28/2025,Done,0.35 hrs,1.5 hrs,Medium,Small,
+7.1 Ensure no global variables (scoped in object),7. Validation & Events,Abdulrahman Ahmed,08/28/2025,Done,0.7 hrs,0.5 hrs,High,Small,
+"7.2 Encapsulate small reusable functions   ",7. Validation & Events,Abdulrahman Ahmed,08/28/2025,Done,(That Was The Convention From The Beginning),2 hrs,High,Small,Did that from the beginning
+7.3 Event binding/unbinding,7. Validation & Events,Abdulrahman Ahmed,08/28/2025,Done,1 hrs,1 hrs,High,Large,
+"    8.1 Base styles",8. Styling,Abdulrahman Ahmed,08/28/2025,Done,0.3 hrs,0.3 hrs,Medium,Small,Alomst done using AI
+"9.1 Test with regular ddl    ",9. Testing & Debugging,Abdulrahman Ahmed,08/28/2025,Done,0.2 hrs,0.5 hrs,High,Small,
+9.2 Test with searchable ddl,9. Testing & Debugging,Abdulrahman Ahmed,08/28/2025,Done,0.2 hrs,0.5 hrs,High,Small,
+9.3 Test with multi-select ddl,9. Testing & Debugging,Abdulrahman Ahmed,08/28/2025,Done,0.4 hrs,1 hrs,High,Small,
+"9.4 Test with tree view ddl  ",9. Testing & Debugging,Abdulrahman Ahmed,08/28/2025,Done,0.7 hrs,1.5 hrs,High,Medium,
+9.5 Validate unique IDs & events,9. Testing & Debugging,Abdulrahman Ahmed,08/28/2025,Done,0.5 hrs,1 hrs,High,Small,
+10.1 Write usage guide / documentation (README.md),10. Documentation Code Comments & Contingency,Abdulrahman Ahmed,08/28/2025,Done,0.3 hrs,1.5 hrs,Medium,Small,Alomst done using AI
+10.2 Add code comments on methods,10. Documentation Code Comments & Contingency,Abdulrahman Ahmed,08/27/2025,Done,0.3 hrs,1 hr,Medium,Medium,Did that from the beginning
+"10.3 Contingency buffer (unexpected bugs, adjustments, edge cases)   ",10. Documentation Code Comments & Contingency,Abdulrahman Ahmed,08/31/2025,Done,0.8 hrs,1.5 hrs,High,Medium,Used modules/promise/name attribute to use getElementByName/added no search reult found msg
+11.1 Adding Notion pages and link to the repo and calculating estimated time and wrapping everything up with sending email,11. Finalizing & Wrapping Things Up,Abdulrahman Ahmed,08/31/2025,In progress,0.5 hrs,Didn’t Estimate It,High,Small,
