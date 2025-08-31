@@ -29,20 +29,19 @@
     2- Data,
     3- Flags (optional parameters that determine whether additional elements appear in the control)
     - Why use this approach instead of server-side rendering with asp- prefix?
-        - Server-side controls (like buttons) have their own lifecycle with at least 8 events, which consumes significant resources.Server-side controls (like buttons) have their own lifecycle with at least 8 events, which consumes significant resources.
-        - Client-side rendered custom controls improve performance (reducing TTFR — Time To First Response).Client-side rendered custom controls improve performance (reducing TTFR — Time To First Response).
-        - Custom controls work best when overriding .NET or database primitives.Custom controls work best when overriding .NET or database primitives.
+        - Server-side controls (like buttons) have their own lifecycle with at least 8 events, which consumes significant resources.
+        - Client-side rendered custom controls improve performance (reducing TTFR — Time To First Response).
+        - Custom controls work best when overriding .NET or database primitives.
         - Custom controls offer flexibility:Custom controls offer flexibility:
-            - A single grid control can contain all needed properties and elements, with specific features enabled through initialization flags.A single grid control can contain all needed properties and elements, with specific features enabled through initialization flags.A single grid control can contain all needed properties and elements, with specific features enabled through initialization flags.
-            - Controls can be extended by creating objects that inherit from them.Controls can be extended by creating objects that inherit from them.Controls can be extended by creating objects that inherit from them.
-        - Custom controls typically reside in common/shared folders.Custom controls typically reside in common/shared folders.
-
+            - A single grid control can contain all needed properties and elements, with specific features enabled through initialization flags.
+            - Controls can be extended by creating objects that inherit from them.
+        - Custom controls typically reside in common/shared folders.
 - **How To Implement Custom Control?**
     1. **First, define purpose and audience**: What am I implementing and for whom?
     2. **Study all use cases** thoroughly:
         - Business: What are the needs for this control?Business: What are the needs for this control?
         - Development: How will developers use this control?Development: How will developers use this control?
-        - Consider functional aspects like performance, complexity, bottlenecks, and callback conditions/validations.Consider functional aspects like performance, complexity, bottlenecks, and callback conditions/validations.
+        - Consider functional aspects like performance, complexity, bottlenecks, and callback conditions/validations.
     3. **Plan and measure** each task and sub-task. Develop an ATOMIC implementation strategy. (Ensure all tasks are "SMART" — Specific, Measurable, Achievable, Relevant, Time-bound)
     4. **Apply generalization**: Make each object separate and independent. Avoid tight coupling.
     5. **Ensure uniqueness**: Create unique identifiers (IDs) for each element. Consider combining IDs with prefixes to prevent collisions.
