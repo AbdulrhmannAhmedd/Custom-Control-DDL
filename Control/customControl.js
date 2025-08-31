@@ -1,11 +1,9 @@
 /**
  * Custom Dropdown Control
  * -----------------------
- * Encapsulates logic for rendering a customizable dropdown (with search, multi-select, tree view, etc.)
- * No global variables. Uses literal object `CustomControl`.
  */
 
-const CustomControl = {
+export const CustomControl = {
     /**
      * Helper functions to manage name attributes like classList
      */

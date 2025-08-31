@@ -1,21 +1,25 @@
+import { CustomControl } from '../../Control/customControl.js';
+
 /**
  * Simulate API call to load JSON data.
- * We fetch from /Data/data.json (local json file).
  */
 
-async function loadData() {
-    try {
-        const response = await fetch("../Data/data.json");
-        if (!response.ok) {
-            throw new Error("Failed to load data.json");
-        }
-        const data = await response.json();
-        console.log("[script] Data loaded:", data);
-        return data;
-    } catch (err) {
-        console.error("[script] Error loading JSON:", err);
-        return [];
-    }
+function loadData() {
+    return fetch("../Data/data.json")
+        .then(response => {
+            if (!response.ok) {
+                throw new Error("Failed to load data.json");
+            }
+            return response.json();
+        })
+        .then(data => {
+            console.log("[script] Data loaded:", data);
+            return data;
+        })
+        .catch(err => {
+            console.error("[script] Error loading JSON:", err);
+            return [];
+        });
 }
 
 /**
