@@ -1,5 +1,8 @@
 # Custom Dropdown Control
 
+> [!IMPORTANT]
+> **PLEASE REFER TO DOCS FILE TO ACCESS THE SESSION 2 DETAILS (WHAT IS THE CUSTOM CONTROL & HOW TO IMPLEMENT IT) + (TASK TRACKER FOR TRACKING DETAILS)**
+
 A powerful and customizable dropdown control library with hierarchical data support, multi-selection, search functionality, and Arabic/RTL support.
 
 ## Features
