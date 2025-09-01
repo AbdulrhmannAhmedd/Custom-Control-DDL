@@ -5,7 +5,13 @@
 
 export const CustomControl = {
     /**
-     * Helper functions to manage name attributes like classList
+     * Helper functions to manage name attributes like classList:
+     */
+
+    /**
+     ** nameListAdd(): Gets elements' name attribute and split its parts by spaces, store them in array, if the nameValue is not in the array, add it to the array, and set the name attribute to the array joined by spaces
+     * @param {HTMLElement} element - The element to add
+     * @param {string} nameValue - The name attribute value to add
      */
     nameListAdd: function(element, nameValue) {
         const current = element.getAttribute('name') || '';
@@ -16,22 +22,39 @@ export const CustomControl = {
         }
     },
 
+    /**
+     ** nameListRemove(): Gets elements' name attribute and split its parts by spaces, filter the array to remove the nameValue, and set the name attribute to the array joined by spaces
+     * @param {HTMLElement} element - The element to remove
+     * @param {string} nameValue - The name attribute value to remove
+     */
     nameListRemove: function(element, nameValue) {
         const current = element.getAttribute('name') || '';
         const classes = current.split(' ').filter(c => c.length > 0 && c !== nameValue);
         element.setAttribute('name', classes.join(' '));
     },
 
+    /**
+     ** nameListToggle(): Gets elements' name attribute and split its parts by spaces, if the nameValue is in the array, remove it from the array, and set the name attribute to the array joined by spaces, otherwise add it to the array and set the name attribute to the array joined by spaces
+     *+ Usage: For dropdown open/close states
+     * @param {HTMLElement} element - The element to toggle
+     * @param {string} nameValue - The name attribute value to toggle
+     */
     nameListToggle: function(element, nameValue) {
         const current = element.getAttribute('name') || '';
         const classes = current.split(' ').filter(c => c.length > 0);
         if (classes.includes(nameValue)) {
-            this.nameListRemove(element, nameValue);
+            CustomControl.nameListRemove(element, nameValue);
         } else {
-            this.nameListAdd(element, nameValue);
+            CustomControl.nameListAdd(element, nameValue);
         }
     },
 
+    /**
+     ** nameListContains(): Gets elements' name attribute and split its parts by spaces, and return true if the nameValue is in the array, otherwise return false
+     * @param {HTMLElement} element - The element to check
+     * @param {string} nameValue - The name attribute value to check for
+     * @returns {boolean} True if the element has the name attribute value, false otherwise
+     */
     nameListContains: function(element, nameValue) {
         const current = element.getAttribute('name') || '';
         const classes = current.split(' ').filter(c => c.length > 0);
@@ -39,7 +62,10 @@ export const CustomControl = {
     },
 
     /**
-     * Helper function to find elements by name attribute (replacement for querySelector)
+     ** getByName(): Gets elements' name attribute by using querySelectorAll and checking if the name attribute value is in the array by using nameListContains(), if true, return the element, otherwise return null
+     * @param {HTMLElement} parent - The parent element to search within
+     * @param {string} nameValue - The name attribute value to search for
+     * @returns {HTMLElement|null} The first element with the name attribute value, or null if not found
      */
     getByName: function(parent, nameValue) {
         if (!parent) parent = document;
@@ -53,7 +79,10 @@ export const CustomControl = {
     },
 
     /**
-     * Helper function to find all elements by name attribute (replacement for querySelectorAll)
+     ** getAllByName(): Gets elements' name attribute by using querySelectorAll and checking if the name attribute value is in the array by using nameListContains(), if true, return the element, otherwise return an empty array
+     * @param {HTMLElement} parent - The parent element to search within
+     * @param {string} nameValue - The name attribute value to search for
+     * @returns {HTMLElement[]} An array of elements with the name attribute value
      */
     getAllByName: function(parent, nameValue) {
         if (!parent) parent = document;
@@ -65,6 +94,7 @@ export const CustomControl = {
 
     /**
      * Create or update no search results message
+     ** handleNoSearchResults(): Takes Container Element and a flag to show or hide the element of no results message, if the flag is true, create the element if not exists already (known by getByName()) and hide placeholder option if exists, and set the display to block, otherwise set the display to none
      * @param {HTMLElement} optionsContainer - Options container element
      * @param {boolean} show - Whether to show or hide the message
      */
@@ -94,22 +124,22 @@ export const CustomControl = {
                 const buttonContainer = CustomControl.getByName(optionsContainer, 'ddl-button-container');
                 
                 if (searchBox && searchBox.nextSibling) {
-                    optionsContainer.insertBefore(noResultsMsg, searchBox.nextSibling);
+                    optionsContainer.insertBefore(noResultsMsg, searchBox.nextSibling); // insert the no results message after the search box
                 } else if (buttonContainer && buttonContainer.nextSibling) {
-                    optionsContainer.insertBefore(noResultsMsg, buttonContainer.nextSibling);
+                    optionsContainer.insertBefore(noResultsMsg, buttonContainer.nextSibling); // insert the no results message after the button container , that's because buttons container itself comes after the search box
                 } else {
-                    optionsContainer.appendChild(noResultsMsg);
+                    optionsContainer.appendChild(noResultsMsg); // insert the no results message at the end of the options container
                 }
             }
-            noResultsMsg.style.display = '';
+            noResultsMsg.style.display = ''; // set the display to block to show the no results message
         } else {
             // Show placeholder option when hiding no results message
             if (placeholderOption) {
-                placeholderOption.style.display = '';
+                placeholderOption.style.display = ''; // set the display to block to show the placeholder option
             }
             
             if (noResultsMsg) {
-                noResultsMsg.style.display = 'none';
+                noResultsMsg.style.display = 'none'; // set the display to none to hide the no results message
             }
         }
     },
@@ -126,7 +156,6 @@ export const CustomControl = {
      *           search: { enabled: true },
      *           multiSelect: { enabled: true },
      *           treeView: { enabled: true },
-     *           treeSingle: { enabled: false },
      *           selectAllBtn: { enabled: true },
      *           clearAllBtn: { enabled: true }
      *        }
@@ -151,6 +180,7 @@ export const CustomControl = {
                 treeView: params.flags?.treeView || { enabled: false },
                 selectAllBtn: params.flags?.selectAllBtn || { enabled: false },
                 clearAllBtn: params.flags?.clearAllBtn || { enabled: false }
+                //! Flags Are False By Default
             }
         };
 
@@ -229,7 +259,7 @@ export const CustomControl = {
         // Add event listener for Select All functionality
         btnSelectAll.addEventListener('click', function(e) {
             e.stopPropagation();
-            const containerId = this.dataset.containerId;
+            const containerId = e.target.dataset.containerId;
             CustomControl.handleSelectAll(containerId);
         });
         
@@ -255,7 +285,7 @@ export const CustomControl = {
         // Add event listener for Clear All functionality
         btnClearAll.addEventListener('click', function(e) {
             e.stopPropagation();
-            const containerId = this.dataset.containerId;
+            const containerId = e.target.dataset.containerId;
             CustomControl.handleClearAll(containerId);
         });
         
@@ -281,8 +311,8 @@ export const CustomControl = {
         
         // Add event listener for search functionality
         searchBox.addEventListener('input', function(e) {
-            const containerId = this.dataset.containerId;
-            const searchTerm = this.value.trim();
+            const containerId = e.target.dataset.containerId;
+            const searchTerm = e.target.value.trim();
             CustomControl.handleSearch(containerId, searchTerm);
         });
         
@@ -519,10 +549,10 @@ export const CustomControl = {
                         childDiv.addEventListener("click", function(e) {
                             e.stopPropagation();
                             // Extract container ID from the dropdown structure
-                            const dropdownContainer = this.closest('[name~="custom-ddl"]');
+                            const dropdownContainer = e.target.closest('[name~="custom-ddl"]');
                             const containerId = dropdownContainer ? dropdownContainer.id.replace('_ddl', '') : null;
                             if (containerId) {
-                                CustomControl.handleSingleSelection(this, containerId);
+                                CustomControl.handleSingleSelection(e.target, containerId);
                             }
                         });
                     }
@@ -581,10 +611,10 @@ export const CustomControl = {
                     parentLabel.addEventListener("click", function(e) {
                         e.stopPropagation();
                         // Extract container ID from the dropdown structure
-                        const dropdownContainer = this.closest('[name~="custom-ddl"]');
+                        const dropdownContainer = e.target.closest('[name~="custom-ddl"]');
                         const containerId = dropdownContainer ? dropdownContainer.id.replace('_ddl', '') : null;
                         if (containerId) {
-                            CustomControl.handleSingleSelection(this, containerId);
+                            CustomControl.handleSingleSelection(e.target, containerId);
                         }
                     });
                 }
@@ -1173,8 +1203,8 @@ export const CustomControl = {
         parentCheckboxes.forEach(parentCheckbox => {
             parentCheckbox.addEventListener('change', function(e) {
                 e.stopPropagation(); // Prevent interference with other events
-                const parentId = this.dataset.parentId;
-                CustomControl.handleParentCheckboxChange(this, parentId);
+                const parentId = e.target.dataset.parentId;
+                CustomControl.handleParentCheckboxChange(e.target, parentId);
             });
             
             // Also prevent click from bubbling
@@ -1189,9 +1219,9 @@ export const CustomControl = {
         childCheckboxes.forEach(childCheckbox => {
             childCheckbox.addEventListener('change', function(e) {
                 e.stopPropagation(); // Prevent interference with other events
-                const parentId = this.dataset.parentId;
+                const parentId = e.target.dataset.parentId;
         
-                CustomControl.handleChildCheckboxChange(this, parentId);
+                CustomControl.handleChildCheckboxChange(e.target, parentId);
             });
             
             // Also prevent click from bubbling
