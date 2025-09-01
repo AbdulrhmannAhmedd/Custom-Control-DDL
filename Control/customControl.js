@@ -459,165 +459,227 @@ export const CustomControl = {
     },
 
     /**
-     * Render dropdown options (parent -> children).
+     * Initialize options rendering - reset tracker and add placeholder.
+     * @param {HTMLElement} optionsContainer - Options container element
+     * @param {Object} settings - Settings object for this instance
+     */
+    initializeOptionsRendering: function(optionsContainer, settings) {
+        CustomControl.resetIdTracker();
+        CustomControl.addPlaceholderOption(optionsContainer, settings);
+    },
+
+    /**
+     * Create parent element structure with unique ID.
+     * @param {Object} parent - Parent data object
+     * @param {Object} settings - Settings object for this instance
+     * @returns {Object} Object containing parentDiv and parentLabel
+     */
+    createParentElement: function(parent, settings) {
+        const parentDiv = document.createElement("div");
+        parentDiv.setAttribute('name', 'ddl-parent');
+
+        const parentLabel = document.createElement("div");
+        parentLabel.setAttribute('name', 'ddl-parent-label');
+        parentLabel.dataset.id = parent.id;
+        parentLabel.id = CustomControl.generateId(settings.containerId, parent.id);
+
+        return { parentDiv, parentLabel };
+    },
+
+    /**
+     * Setup parent content (checkbox + text or just text).
+     * @param {HTMLElement} parentLabel - Parent label element
+     * @param {Object} parent - Parent data object
+     * @param {Object} settings - Settings object for this instance
+     */
+    setupParentContent: function(parentLabel, parent, settings) {
+        if (settings.flags.multiSelect.enabled) {
+            const parentCheckbox = document.createElement("input");
+            parentCheckbox.type = "checkbox";
+            parentCheckbox.setAttribute('name', 'ddl-checkbox parent-checkbox');
+            parentCheckbox.id = `${parentLabel.id}-checkbox`;
+            parentCheckbox.dataset.parentId = parent.id;
+
+            const parentText = document.createElement("span");
+            parentText.setAttribute('name', 'ddl-label-text');
+            parentText.innerText = parent.name;
+
+            parentLabel.appendChild(parentCheckbox);
+            parentLabel.appendChild(parentText);
+        } else {
+            parentLabel.innerText = parent.name;
+        }
+    },
+
+    /**
+     * Create a single child element with proper setup.
+     * @param {Object} child - Child data object
+     * @param {Object} parent - Parent data object
+     * @param {Object} settings - Settings object for this instance
+     * @returns {HTMLElement} Child element
+     */
+    createChildElement: function(child, parent, settings) {
+        const childDiv = document.createElement("div");
+        childDiv.setAttribute('name', 'ddl-child');
+        childDiv.dataset.id = child.id;
+        childDiv.dataset.parentId = parent.id;
+        childDiv.id = CustomControl.generateId(settings.containerId, parent.id, child.id);
+
+        CustomControl.setupChildContent(childDiv, child, parent, settings);
+        
+        return childDiv;
+    },
+
+    /**
+     * Setup child content (checkbox + text or just text with click handler).
+     * @param {HTMLElement} childDiv - Child element
+     * @param {Object} child - Child data object
+     * @param {Object} parent - Parent data object
+     * @param {Object} settings - Settings object for this instance
+     */
+    setupChildContent: function(childDiv, child, parent, settings) {
+        if (settings.flags.multiSelect.enabled) {
+            const childCheckbox = document.createElement("input");
+            childCheckbox.type = "checkbox";
+            childCheckbox.setAttribute('name', 'ddl-checkbox child-checkbox');
+            childCheckbox.id = `${childDiv.id}-checkbox`;
+            childCheckbox.dataset.childId = child.id;
+            childCheckbox.dataset.parentId = parent.id;
+
+            const childText = document.createElement("span");
+            childText.setAttribute('name', 'ddl-label-text');
+            childText.innerText = child.name;
+
+            childDiv.appendChild(childCheckbox);
+            childDiv.appendChild(childText);
+        } else {
+            // Single selection - add text and click handler
+            childDiv.innerText = child.name;
+            CustomControl.nameListAdd(childDiv, "ddl-option");
+            childDiv.addEventListener("click", function(e) {
+                e.stopPropagation();
+                const dropdownContainer = e.target.closest('[name~="custom-ddl"]');
+                const containerId = dropdownContainer ? dropdownContainer.id.replace('_ddl', '') : null;
+                if (containerId) {
+                    CustomControl.handleSingleSelection(e.target, containerId);
+                }
+            });
+        }
+    },
+
+    /**
+     * Create children container and populate with child elements.
+     * @param {Object} parent - Parent data object
+     * @param {Object} settings - Settings object for this instance
+     * @returns {HTMLElement} Children container element
+     */
+    createChildrenSection: function(parent, settings) {
+        const childrenContainer = document.createElement("div");
+        childrenContainer.setAttribute('name', 'ddl-children hidden'); // collapsed by default
+
+        parent.children.forEach(child => {
+            const childDiv = CustomControl.createChildElement(child, parent, settings);
+            childrenContainer.appendChild(childDiv);
+        });
+
+        return childrenContainer;
+    },
+
+    /**
+     * Add expand/collapse behavior to tree view parents.
+     * @param {HTMLElement} parentLabel - Parent label element
+     * @param {HTMLElement} childrenContainer - Children container element
+     * @param {Object} settings - Settings object for this instance
+     */
+    addTreeViewBehavior: function(parentLabel, childrenContainer, settings) {
+        const toggleChildren = function () {
+            CustomControl.nameListToggle(childrenContainer, "hidden");
+            const isNowVisible = !CustomControl.nameListContains(childrenContainer, "hidden");
+            
+            if (isNowVisible) {
+                CustomControl.nameListAdd(parentLabel, "expanded");    // Arrow UP ▲
+            } else {
+                CustomControl.nameListRemove(parentLabel, "expanded"); // Arrow DOWN ▼
+            }
+        };
+
+        if (settings.flags.multiSelect.enabled) {
+            // When checkboxes exist, only text should expand/collapse
+            const parentTextElement = CustomControl.getByName(parentLabel, 'ddl-label-text');
+            if (parentTextElement) {
+                parentTextElement.addEventListener("click", function (e) {
+                    e.stopPropagation(); // Prevent checkbox events
+                    toggleChildren();
+                });
+            }
+        } else {
+            // When no checkboxes, whole label can be clicked
+            parentLabel.addEventListener("click", function () {
+                toggleChildren();
+            });
+        }
+    },
+
+    /**
+     * Add single selection handlers to parent elements.
+     * @param {HTMLElement} parentLabel - Parent label element
+     * @param {Object} parent - Parent data object
+     * @param {Object} settings - Settings object for this instance
+     */
+    addSingleSelectionHandlers: function(parentLabel, parent, settings) {
+        const hasTreeView = settings.flags.treeView.enabled;
+        const hasChildren = parent.children && parent.children.length > 0;
+        
+        // In single selection:
+        // - Tree view with children: Parents are NOT selectable (only for organization)
+        // - Tree view without children OR no tree view: Parents ARE selectable
+        if (!hasTreeView || !hasChildren) {
+            CustomControl.nameListAdd(parentLabel, "ddl-option");
+            
+            parentLabel.addEventListener("click", function(e) {
+                e.stopPropagation();
+                const dropdownContainer = e.target.closest('[name~="custom-ddl"]');
+                const containerId = dropdownContainer ? dropdownContainer.id.replace('_ddl', '') : null;
+                if (containerId) {
+                    CustomControl.handleSingleSelection(e.target, containerId);
+                }
+            });
+        }
+    },
+
+    /**
+     * Render dropdown options (orchestrator method).
      * @param {Array} data - Hierarchical data [{id, name, children:[]}]
      * @param {HTMLElement} optionsContainer - Target options container
+     * @param {Object} settings - Settings object for this instance
      */
     renderOptions: function (data, optionsContainer, settings) {
-        // ✅ Reset ID tracker before rendering to ensure clean validation
-        CustomControl.resetIdTracker();
+        // Initialize rendering
+        CustomControl.initializeOptionsRendering(optionsContainer, settings);
 
-        // ✅ Add disabled placeholder option as first option
-        CustomControl.addPlaceholderOption(optionsContainer, settings);
-
+        // Process each parent
         data.forEach(parent => {
-            // Parent container
-            const parentDiv = document.createElement("div");
-            parentDiv.setAttribute('name', 'ddl-parent');
-
-            // Parent label with checkbox
-            const parentLabel = document.createElement("div");
-            parentLabel.setAttribute('name', 'ddl-parent-label');
-            parentLabel.dataset.id = parent.id;
-
-            // ✅ Generate unique ID for parent
-            parentLabel.id = CustomControl.generateId(
-                settings.containerId,
-                parent.id
-            );
-
-            // ✅ Add checkbox for parent if multiSelect is enabled
-            if (settings.flags.multiSelect.enabled) {
-                const parentCheckbox = document.createElement("input");
-                parentCheckbox.type = "checkbox";
-                parentCheckbox.setAttribute('name', 'ddl-checkbox parent-checkbox');
-                parentCheckbox.id = `${parentLabel.id}-checkbox`;
-                parentCheckbox.dataset.parentId = parent.id;
-
-                const parentText = document.createElement("span");
-                parentText.setAttribute('name', 'ddl-label-text');
-                parentText.innerText = parent.name;
-
-                parentLabel.appendChild(parentCheckbox);
-                parentLabel.appendChild(parentText);
-            } else {
-                parentLabel.innerText = parent.name;
-            }
-
+            // Create parent structure
+            const { parentDiv, parentLabel } = CustomControl.createParentElement(parent, settings);
+            CustomControl.setupParentContent(parentLabel, parent, settings);
             parentDiv.appendChild(parentLabel);
 
-            // Children list
+            // Handle tree view children
             if (settings.flags.treeView.enabled && parent.children && parent.children.length > 0) {
-                // ✅ Add "has-children" class for arrow styling
+                // Mark parent as having children for arrow styling
                 CustomControl.nameListAdd(parentLabel, "has-children");
-
-                const childrenContainer = document.createElement("div");
-                childrenContainer.setAttribute('name', 'ddl-children hidden'); // collapsed by default
-
-                parent.children.forEach(child => {
-                    const childDiv = document.createElement("div");
-                    childDiv.setAttribute('name', 'ddl-child');
-                    childDiv.dataset.id = child.id;
-                    childDiv.dataset.parentId = parent.id;
-
-                    // ✅ Generate unique ID for child
-                    childDiv.id = CustomControl.generateId(
-                        settings.containerId,
-                        parent.id,
-                        child.id
-                    );
-
-                    // ✅ Add checkbox for child if multiSelect is enabled
-                    if (settings.flags.multiSelect.enabled) {
-                        const childCheckbox = document.createElement("input");
-                        childCheckbox.type = "checkbox";
-                        childCheckbox.setAttribute('name', 'ddl-checkbox child-checkbox');
-                        childCheckbox.id = `${childDiv.id}-checkbox`;
-                        childCheckbox.dataset.childId = child.id;
-                        childCheckbox.dataset.parentId = parent.id;
-
-                        const childText = document.createElement("span");
-                        childText.setAttribute('name', 'ddl-label-text');
-                        childText.innerText = child.name;
-
-                        childDiv.appendChild(childCheckbox);
-                        childDiv.appendChild(childText);
-                    } else {
-                        // Single selection - add click handler
-                        childDiv.innerText = child.name;
-                        CustomControl.nameListAdd(childDiv, "ddl-option");
-                        childDiv.addEventListener("click", function(e) {
-                            e.stopPropagation();
-                            // Extract container ID from the dropdown structure
-                            const dropdownContainer = e.target.closest('[name~="custom-ddl"]');
-                            const containerId = dropdownContainer ? dropdownContainer.id.replace('_ddl', '') : null;
-                            if (containerId) {
-                                CustomControl.handleSingleSelection(e.target, containerId);
-                            }
-                        });
-                    }
-
-                    childrenContainer.appendChild(childDiv);
-                });
-
+                
+                // Create children section
+                const childrenContainer = CustomControl.createChildrenSection(parent, settings);
                 parentDiv.appendChild(childrenContainer);
 
-                // ✅ Expand/Collapse logic with arrow rotation
-                const toggleChildren = function () {
-                    // Toggle visibility first
-                    CustomControl.nameListToggle(childrenContainer, "hidden");
-                    
-                    // Check if children are now visible (not hidden)
-                    const isNowVisible = !CustomControl.nameListContains(childrenContainer, "hidden");
-                    
-                    // Set expanded class based on current visibility
-                    if (isNowVisible) {
-                        CustomControl.nameListAdd(parentLabel, "expanded");    // Arrow UP ▲
-                    } else {
-                        CustomControl.nameListRemove(parentLabel, "expanded"); // Arrow DOWN ▼
-                    }
-                };
-
-                if (settings.flags.multiSelect.enabled) {
-                    // When checkboxes exist, only text should expand/collapse
-                    const parentTextElement = CustomControl.getByName(parentLabel, 'ddl-label-text');
-                    if (parentTextElement) {
-                        parentTextElement.addEventListener("click", function (e) {
-                            e.stopPropagation(); // Prevent checkbox events
-                            toggleChildren();
-                        });
-                    }
-                } else {
-                    // When no checkboxes, whole label can be clicked
-                    parentLabel.addEventListener("click", function () {
-                        toggleChildren();
-                    });
-                }
+                // Add expand/collapse behavior
+                CustomControl.addTreeViewBehavior(parentLabel, childrenContainer, settings);
             }
 
-            // ✅ Add single selection handler for parent (if no multiSelect)
+            // Add single selection handlers if needed
             if (!settings.flags.multiSelect.enabled) {
-                const hasTreeView = settings.flags.treeView.enabled;
-                const hasChildren = parent.children && parent.children.length > 0;
-                
-                // In single selection:
-                // - Tree view with children: Parents are NOT selectable (only for organization)
-                // - Tree view without children OR no tree view: Parents ARE selectable
-                if (!hasTreeView || !hasChildren) {
-                    // Make parent selectable only if it has no children or no tree view
-                    CustomControl.nameListAdd(parentLabel, "ddl-option");
-                    
-                    // Add click handler for selection
-                    parentLabel.addEventListener("click", function(e) {
-                        e.stopPropagation();
-                        // Extract container ID from the dropdown structure
-                        const dropdownContainer = e.target.closest('[name~="custom-ddl"]');
-                        const containerId = dropdownContainer ? dropdownContainer.id.replace('_ddl', '') : null;
-                        if (containerId) {
-                            CustomControl.handleSingleSelection(e.target, containerId);
-                        }
-                    });
-                }
+                CustomControl.addSingleSelectionHandlers(parentLabel, parent, settings);
             }
 
             optionsContainer.appendChild(parentDiv);
