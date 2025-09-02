@@ -62,7 +62,7 @@ export const CustomControl = {
     },
 
     /**
-     ** getByName(): Gets elements' name attribute by using querySelectorAll and checking if the name attribute value is in the array by using nameListContains(), if true, return the element, otherwise return null
+     ** getByName(): Gets elements' that has the name attribute by using querySelectorAll and checking if the name attribute value is in the array by using nameListContains(), if true, return the element, otherwise return null
      * @param {HTMLElement} parent - The parent element to search within
      * @param {string} nameValue - The name attribute value to search for
      * @returns {HTMLElement|null} The first element with the name attribute value, or null if not found
@@ -75,11 +75,11 @@ export const CustomControl = {
                 return element;
             }
         }
-        return null;
+        // return null;
     },
 
     /**
-     ** getAllByName(): Gets elements' name attribute by using querySelectorAll and checking if the name attribute value is in the array by using nameListContains(), if true, return the element, otherwise return an empty array
+     ** getAllByName(): Gets elements' that has the name attribute by using querySelectorAll and checking if the name attribute value is in the array by using nameListContains(), if true, return the element, otherwise return an empty array
      * @param {HTMLElement} parent - The parent element to search within
      * @param {string} nameValue - The name attribute value to search for
      * @returns {HTMLElement[]} An array of elements with the name attribute value
@@ -109,7 +109,7 @@ export const CustomControl = {
             }
             
             if (!noResultsMsg) {
-                // Create the no results message element
+                // Create the no results message e lement
                 noResultsMsg = document.createElement('div');
                 noResultsMsg.setAttribute('name', 'ddl-no-results');
                 noResultsMsg.innerText = 'لا يوجد نتائج للبحث';
@@ -1179,16 +1179,16 @@ export const CustomControl = {
         let visibleParentsCount = 0;
 
         parentElements.forEach(parentElement => {
-            const parentLabel = CustomControl.getByName(parentElement, 'ddl-parent-label');
+            const parentLabel = CustomControl.getByName(parentElement, 'ddl-parent-label'); //* 'ddl-parent-label' will have the parent name in case there was no checkboxes (multiSelect is false)
             if (!parentLabel) return;
 
             // Get parent name (handle both checkbox and plain text scenarios)
             let parentName = '';
-            const parentTextSpan = CustomControl.getByName(parentLabel, 'ddl-label-text');
+            const parentTextSpan = CustomControl.getByName(parentLabel, 'ddl-label-text'); //* 'ddl-label-text' will have the parent name in case there was checkboxes (multiSelect is true)
             if (parentTextSpan) {
-                parentName = parentTextSpan.innerText.toLowerCase();
+                parentName = parentTextSpan.innerText.toLowerCase(); //* if it's checkbox, it will have the parent name in the 'ddl-label-text'
             } else {
-                parentName = parentLabel.innerText.toLowerCase();
+                parentName = parentLabel.innerText.toLowerCase(); //* if it's not checkbox, it will have the parent name in the 'ddl-parent-label'
             }
 
             let showParent = false;
@@ -1202,15 +1202,15 @@ export const CustomControl = {
                 let hasMatchingChild = false;
 
                 if (childrenContainer) {
-                    const childElements = CustomControl.getAllByName(childrenContainer, 'ddl-child');
+                    const childElements = CustomControl.getAllByName(childrenContainer, 'ddl-child'); //* 'ddl-child' will have the child name in case there was no checkboxes (multiSelect is false)
                     childElements.forEach(childElement => {
                         // Get child name (handle both checkbox and plain text scenarios)
                         let childName = '';
-                        const childTextSpan = CustomControl.getByName(childElement, 'ddl-label-text');
+                        const childTextSpan = CustomControl.getByName(childElement, 'ddl-label-text'); //* 'ddl-label-text' will have the child name in case there was checkboxes (multiSelect is true)
                         if (childTextSpan) {
-                            childName = childTextSpan.innerText.toLowerCase();
+                            childName = childTextSpan.innerText.toLowerCase(); //* if it's checkbox, it will have the child name in the 'ddl-label-text'
                         } else {
-                            childName = childElement.innerText.toLowerCase();
+                            childName = childElement.innerText.toLowerCase(); //* if it's not checkbox, it will have the child name in the 'ddl-child'
                         }
 
                         const childMatches = childName.includes(searchLower);
@@ -1235,7 +1235,7 @@ export const CustomControl = {
                     });
                 }
             } else {
-                // Flat view: search in parents only
+                // Flat view: search in parents only (when there is no tree view)
                 showParent = parentMatches;
             }
 
