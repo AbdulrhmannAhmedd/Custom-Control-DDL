@@ -259,7 +259,7 @@ export const CustomControl = {
         // Add event listener for Select All functionality
         btnSelectAll.addEventListener('click', function(e) {
             e.stopPropagation();
-            const containerId = this.dataset.containerId;
+            const containerId = e.currentTarget.dataset.containerId;
             CustomControl.handleSelectAll(containerId);
         });
         
@@ -285,7 +285,7 @@ export const CustomControl = {
         // Add event listener for Clear All functionality
         btnClearAll.addEventListener('click', function(e) {
             e.stopPropagation();
-            const containerId = this.dataset.containerId;
+            const containerId = e.currentTarget.dataset.containerId;
             CustomControl.handleClearAll(containerId);
         });
         
@@ -311,8 +311,8 @@ export const CustomControl = {
         
         // Add event listener for search functionality
         searchBox.addEventListener('input', function(e) {
-            const containerId = this.dataset.containerId;
-            const searchTerm = this.value.trim();
+            const containerId = e.currentTarget.dataset.containerId;
+            const searchTerm = e.currentTarget.value.trim();
             CustomControl.handleSearch(containerId, searchTerm);
         });
         
@@ -556,14 +556,14 @@ export const CustomControl = {
             // Single selection - add text and click handler
             childDiv.innerText = child.name;
             CustomControl.nameListAdd(childDiv, "ddl-option");
-            childDiv.addEventListener("click", function(e) {
-                e.stopPropagation();
-                const dropdownContainer = this.closest('[name~="custom-ddl"]');
-                const containerId = dropdownContainer ? dropdownContainer.id.replace('_ddl', '') : null;
-                if (containerId) {
-                    CustomControl.handleSingleSelection(this, containerId);
-                }
-            });
+                            childDiv.addEventListener("click", function(e) {
+                    e.stopPropagation();
+                    const dropdownContainer = e.currentTarget.closest('[name~="custom-ddl"]');
+                    const containerId = dropdownContainer ? dropdownContainer.id.replace('_ddl', '') : null;
+                    if (containerId) {
+                        CustomControl.handleSingleSelection(e.currentTarget, containerId);
+                    }
+                });
         }
     },
 
@@ -638,10 +638,10 @@ export const CustomControl = {
             
             parentLabel.addEventListener("click", function(e) {
                 e.stopPropagation();
-                const dropdownContainer = this.closest('[name~="custom-ddl"]');
+                const dropdownContainer = e.currentTarget.closest('[name~="custom-ddl"]');
                 const containerId = dropdownContainer ? dropdownContainer.id.replace('_ddl', '') : null;
                 if (containerId) {
-                    CustomControl.handleSingleSelection(this, containerId);
+                    CustomControl.handleSingleSelection(e.currentTarget, containerId);
                 }
             });
         }
@@ -752,9 +752,8 @@ export const CustomControl = {
         // ✅ Extract settings and data from DOM structure for this specific dropdown
         const checkboxElement = CustomControl.getByName(dropdownContainer, 'ddl-checkbox');
         const childrenElement = CustomControl.getByName(dropdownContainer, 'ddl-children');
-        // FIX: Use proper falsy check instead of !== null (undefined !== null is true!)
-        const hasMultiSelect = !!checkboxElement;
-        const hasTreeView = !!childrenElement;
+        const hasMultiSelect = !!checkboxElement; //* falsy check that returns boolean --> (!!checkboxElement) returns true if checkboxElement is not null or undefined
+        const hasTreeView = !!childrenElement; //* falsy check that returns boolean --> (!!childrenElement) returns true if childrenElement is not null or undefined
         const data = CustomControl.extractDataFromDOM(dropdownContainer);
 
         let displayText = "";
@@ -1271,8 +1270,8 @@ export const CustomControl = {
         parentCheckboxes.forEach(parentCheckbox => {
             parentCheckbox.addEventListener('change', function(e) {
                 e.stopPropagation(); // Prevent interference with other events
-                const parentId = this.dataset.parentId;
-                CustomControl.handleParentCheckboxChange(this, parentId);
+                const parentId = e.currentTarget.dataset.parentId;
+                CustomControl.handleParentCheckboxChange(e.currentTarget, parentId);
             });
             
             // Also prevent click from bubbling
@@ -1287,9 +1286,9 @@ export const CustomControl = {
         childCheckboxes.forEach(childCheckbox => {
             childCheckbox.addEventListener('change', function(e) {
                 e.stopPropagation(); // Prevent interference with other events
-                const parentId = this.dataset.parentId;
+                const parentId = e.currentTarget.dataset.parentId;
         
-                CustomControl.handleChildCheckboxChange(this, parentId);
+                CustomControl.handleChildCheckboxChange(e.currentTarget, parentId);
             });
             
             // Also prevent click from bubbling
@@ -1369,7 +1368,6 @@ export const CustomControl = {
     openDropdown: function (ddlWrapper, optionsContainer) {
         CustomControl.nameListRemove(optionsContainer, 'hidden');
         CustomControl.nameListAdd(ddlWrapper, 'open');
-        console.log('[CustomControl] Dropdown opened');
     },
 
     /**
@@ -1380,7 +1378,6 @@ export const CustomControl = {
     closeDropdown: function (ddlWrapper, optionsContainer) {
         CustomControl.nameListAdd(optionsContainer, 'hidden');
         CustomControl.nameListRemove(ddlWrapper, 'open');
-        console.log('[CustomControl] Dropdown closed');
     },
 
     /**
