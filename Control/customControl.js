@@ -259,7 +259,7 @@ export const CustomControl = {
         // Add event listener for Select All functionality
         btnSelectAll.addEventListener('click', function(e) {
             e.stopPropagation();
-            const containerId = e.target.dataset.containerId;
+            const containerId = this.dataset.containerId;
             CustomControl.handleSelectAll(containerId);
         });
         
@@ -285,7 +285,7 @@ export const CustomControl = {
         // Add event listener for Clear All functionality
         btnClearAll.addEventListener('click', function(e) {
             e.stopPropagation();
-            const containerId = e.target.dataset.containerId;
+            const containerId = this.dataset.containerId;
             CustomControl.handleClearAll(containerId);
         });
         
@@ -311,8 +311,8 @@ export const CustomControl = {
         
         // Add event listener for search functionality
         searchBox.addEventListener('input', function(e) {
-            const containerId = e.target.dataset.containerId;
-            const searchTerm = e.target.value.trim();
+            const containerId = this.dataset.containerId;
+            const searchTerm = this.value.trim();
             CustomControl.handleSearch(containerId, searchTerm);
         });
         
@@ -558,10 +558,10 @@ export const CustomControl = {
             CustomControl.nameListAdd(childDiv, "ddl-option");
             childDiv.addEventListener("click", function(e) {
                 e.stopPropagation();
-                const dropdownContainer = e.target.closest('[name~="custom-ddl"]');
+                const dropdownContainer = this.closest('[name~="custom-ddl"]');
                 const containerId = dropdownContainer ? dropdownContainer.id.replace('_ddl', '') : null;
                 if (containerId) {
-                    CustomControl.handleSingleSelection(e.target, containerId);
+                    CustomControl.handleSingleSelection(this, containerId);
                 }
             });
         }
@@ -638,10 +638,10 @@ export const CustomControl = {
             
             parentLabel.addEventListener("click", function(e) {
                 e.stopPropagation();
-                const dropdownContainer = e.target.closest('[name~="custom-ddl"]');
+                const dropdownContainer = this.closest('[name~="custom-ddl"]');
                 const containerId = dropdownContainer ? dropdownContainer.id.replace('_ddl', '') : null;
                 if (containerId) {
-                    CustomControl.handleSingleSelection(e.target, containerId);
+                    CustomControl.handleSingleSelection(this, containerId);
                 }
             });
         }
@@ -750,8 +750,11 @@ export const CustomControl = {
         if (!dropdownContainer) return;
 
         // ✅ Extract settings and data from DOM structure for this specific dropdown
-        const hasMultiSelect = CustomControl.getByName(dropdownContainer, 'ddl-checkbox') !== null;
-        const hasTreeView = CustomControl.getByName(dropdownContainer, 'ddl-children') !== null;
+        const checkboxElement = CustomControl.getByName(dropdownContainer, 'ddl-checkbox');
+        const childrenElement = CustomControl.getByName(dropdownContainer, 'ddl-children');
+        // FIX: Use proper falsy check instead of !== null (undefined !== null is true!)
+        const hasMultiSelect = !!checkboxElement;
+        const hasTreeView = !!childrenElement;
         const data = CustomControl.extractDataFromDOM(dropdownContainer);
 
         let displayText = "";
@@ -963,11 +966,14 @@ export const CustomControl = {
      */
     getSingleSelection: function (dropdownContainer, data) {
         // For single selection, find selected option (using ddl-selected class)
-        const selectedOption = dropdownContainer.querySelector('[name*="ddl-option"][name*="ddl-selected"]');
+        const allOptions = CustomControl.getAllByName(dropdownContainer, 'ddl-option');
+        const selectedOption = allOptions.find(option => 
+            CustomControl.nameListContains(option, 'ddl-selected')
+        );
         
         if (selectedOption) {
             // Check if tree view is enabled by looking for .ddl-children elements
-            const hasTreeView = CustomControl.getByName(dropdownContainer, 'ddl-children') !== null;
+            const hasTreeView = !!CustomControl.getByName(dropdownContainer, 'ddl-children');
             
             if (CustomControl.nameListContains(selectedOption, 'ddl-parent-label')) {
                 // Selected parent option
@@ -1265,8 +1271,8 @@ export const CustomControl = {
         parentCheckboxes.forEach(parentCheckbox => {
             parentCheckbox.addEventListener('change', function(e) {
                 e.stopPropagation(); // Prevent interference with other events
-                const parentId = e.target.dataset.parentId;
-                CustomControl.handleParentCheckboxChange(e.target, parentId);
+                const parentId = this.dataset.parentId;
+                CustomControl.handleParentCheckboxChange(this, parentId);
             });
             
             // Also prevent click from bubbling
@@ -1281,9 +1287,9 @@ export const CustomControl = {
         childCheckboxes.forEach(childCheckbox => {
             childCheckbox.addEventListener('change', function(e) {
                 e.stopPropagation(); // Prevent interference with other events
-                const parentId = e.target.dataset.parentId;
+                const parentId = this.dataset.parentId;
         
-                CustomControl.handleChildCheckboxChange(e.target, parentId);
+                CustomControl.handleChildCheckboxChange(this, parentId);
             });
             
             // Also prevent click from bubbling
