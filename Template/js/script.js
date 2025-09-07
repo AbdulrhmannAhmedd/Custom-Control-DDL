@@ -33,14 +33,7 @@ async function init() {
         containerId: "DDLcontainer0000",
         placeholder: "اختر المنطقة...",
         label: "1- المناطق (قائمة عادية - اختيار واحد)",
-        data: data,
-        flags: {
-            search: { enabled: false },
-            multiSelect: { enabled: false },
-            treeView: { enabled: false },
-            selectAllBtn: { enabled: false },
-            clearAllBtn: { enabled: false }
-        }
+        data: data
     })
 
     //* Second dropdown - Single selection with search
@@ -50,11 +43,7 @@ async function init() {
         label: "2- المناطق (قائمة عادية - اختيار واحد - بحث)",
         data: data,
         flags: {
-            search: { enabled: true },
-            multiSelect: { enabled: false },
-            treeView: { enabled: false },
-            selectAllBtn: { enabled: false },
-            clearAllBtn: { enabled: false }
+            search: { enabled: true }
         }
     })
 
@@ -66,10 +55,7 @@ async function init() {
         data: data,
         flags: {
             search: { enabled: true },
-            multiSelect: { enabled: false },
             treeView: { enabled: true },
-            selectAllBtn: { enabled: false },
-            clearAllBtn: { enabled: false }
         }
     })
 
@@ -82,7 +68,6 @@ async function init() {
         flags: {
             search: { enabled: true },
             multiSelect: { enabled: true },
-            treeView: { enabled: false },
             selectAllBtn: { enabled: true },
             clearAllBtn: { enabled: true }
         }

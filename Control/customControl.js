@@ -62,7 +62,7 @@ export const CustomControl = {
     },
 
     /**
-     ** getByName(): Gets elements' that has the name attribute by using querySelectorAll and checking if the name attribute value is in the array by using nameListContains(), if true, return the element, otherwise return null
+     ** getByName(): Gets elements' that has the name attribute by searching in its parent using querySelectorAll and checking if the name attribute value is in the array by using nameListContains(), if true, return the element, otherwise return null
      * @param {HTMLElement} parent - The parent element to search within
      * @param {string} nameValue - The name attribute value to search for
      * @returns {HTMLElement|null} The first element with the name attribute value, or null if not found
@@ -898,7 +898,7 @@ export const CustomControl = {
             const parentCheckbox = dropdownContainer.querySelector(`[name*="parent-checkbox"][data-parent-id="${parent.id}"]`);
             const childCheckboxes = dropdownContainer.querySelectorAll(`[name*="child-checkbox"][data-parent-id="${parent.id}"]`);
             
-            const checkedChildren = Array.from(childCheckboxes).filter(cb => cb.checked);
+            const checkedChildren = Array.from(childCheckboxes).filter(cb => cb.checked); //* Convert NodeList to Array
 
             // Check if parent has children
             const hasChildren = parent.children && parent.children.length > 0;
@@ -909,7 +909,8 @@ export const CustomControl = {
                     results.push(parent.name);
                 } else {
                     // Parent checked with children - show parent ← checked children (regardless of count)
-                    const selectedChildNames = checkedChildren.map(cb => {
+                    // then joins the names with a comma after filtring with name then puts it in the results array
+                    const selectedChildNames = checkedChildren.map(cb => { //* Map the checked children to their names
                         const childId = cb.dataset.childId;
                         const child = parent.children.find(c => c.id == childId);
                         return child ? child.name : '';
@@ -1002,7 +1003,7 @@ export const CustomControl = {
     },
 
     /**
-     * Handle parent checkbox change - check/uncheck all children.
+     ** Handle parent checkbox change - check/uncheck all children.
      * @param {HTMLInputElement} parentCheckbox - Parent checkbox element
      * @param {string} parentId - Parent ID
      */
@@ -1032,12 +1033,12 @@ export const CustomControl = {
     },
 
     /**
-     * Handle child checkbox change - update parent state accordingly.
+     ** Handle child checkbox change - update parent state accordingly.
      * @param {HTMLInputElement} childCheckbox - Child checkbox element
      * @param {string} parentId - Parent ID
      */
     handleChildCheckboxChange: function (childCheckbox, parentId) {
-        // ✅ Extract container ID from checkbox element to ensure correct dropdown instance
+        // Extract container ID from checkbox element to ensure correct dropdown instance
         const containerId = CustomControl.extractContainerIdFromElement(childCheckbox);
         if (!containerId) return;
         
@@ -1050,7 +1051,7 @@ export const CustomControl = {
         
         if (!parentCheckbox) return;
         
-        // ✅ Find only child checkboxes for this specific parent IN THIS DROPDOWN INSTANCE
+        // Find only child checkboxes for this specific parent IN THIS DROPDOWN INSTANCE
         const childCheckboxes = dropdownContainer.querySelectorAll(
             `[name*="child-checkbox"][data-parent-id="${parentId}"]`
         );
@@ -1087,7 +1088,9 @@ export const CustomControl = {
 
         if (hasTreeView) {
             // Tree view: select all parent and child checkboxes
-            const allCheckboxes = dropdownContainer.querySelectorAll('[name*="parent-checkbox"], [name*="child-checkbox"]');
+            const parentCheckboxes = CustomControl.getAllByName(dropdownContainer, 'parent-checkbox');
+            const childCheckboxes = CustomControl.getAllByName(dropdownContainer, 'child-checkbox');
+            const allCheckboxes = [...parentCheckboxes, ...childCheckboxes];
             allCheckboxes.forEach(checkbox => {
                 if (!checkbox.checked) {
                     checkbox.checked = true;
@@ -1097,7 +1100,7 @@ export const CustomControl = {
             });
         } else {
             // Flat view: select all parent checkboxes only
-            const allCheckboxes = dropdownContainer.querySelectorAll('[name*="parent-checkbox"]');
+            const allCheckboxes = CustomControl.getAllByName(dropdownContainer, 'parent-checkbox');
             allCheckboxes.forEach(checkbox => {
                 if (!checkbox.checked) {
                     checkbox.checked = true;
@@ -1123,7 +1126,9 @@ export const CustomControl = {
 
         if (hasTreeView) {
             // Tree view: clear all parent and child checkboxes
-            const allCheckboxes = dropdownContainer.querySelectorAll('[name*="parent-checkbox"], [name*="child-checkbox"]');
+            const parentCheckboxes = CustomControl.getAllByName(dropdownContainer, 'parent-checkbox');
+            const childCheckboxes = CustomControl.getAllByName(dropdownContainer, 'child-checkbox');
+            const allCheckboxes = [...parentCheckboxes, ...childCheckboxes];
             allCheckboxes.forEach(checkbox => {
                 if (checkbox.checked || checkbox.indeterminate) {
                     checkbox.checked = false;
@@ -1134,7 +1139,7 @@ export const CustomControl = {
             });
         } else {
             // Flat view: clear all parent checkboxes only
-            const allCheckboxes = dropdownContainer.querySelectorAll('[name*="parent-checkbox"]');
+            const allCheckboxes = CustomControl.getAllByName(dropdownContainer, 'parent-checkbox');
             allCheckboxes.forEach(checkbox => {
                 checkbox.checked = false;
                 checkbox.indeterminate = false;
@@ -1266,7 +1271,7 @@ export const CustomControl = {
      */
     addCheckboxEventListeners: function (optionsContainer) {
         // Parent checkbox event listeners
-        const parentCheckboxes = optionsContainer.querySelectorAll('[name*="parent-checkbox"]');
+        const parentCheckboxes = CustomControl.getAllByName(optionsContainer, 'parent-checkbox');
         parentCheckboxes.forEach(parentCheckbox => {
             parentCheckbox.addEventListener('change', function(e) {
                 e.stopPropagation(); // Prevent interference with other events
@@ -1281,7 +1286,7 @@ export const CustomControl = {
         });
 
         // Child checkbox event listeners
-        const childCheckboxes = optionsContainer.querySelectorAll('[name*="child-checkbox"]');
+        const childCheckboxes = CustomControl.getAllByName(optionsContainer, 'child-checkbox');
 
         childCheckboxes.forEach(childCheckbox => {
             childCheckbox.addEventListener('change', function(e) {
@@ -1337,7 +1342,7 @@ export const CustomControl = {
      * @param {HTMLElement} currentWrapper - Current dropdown wrapper to keep open
      */
     closeAllOtherDropdowns: function (currentWrapper) {
-        const allDropdowns = document.querySelectorAll('[name*="custom-ddl"]');
+        const allDropdowns = CustomControl.getAllByName(document, 'custom-ddl');
         allDropdowns.forEach(dropdown => {
             if (dropdown !== currentWrapper && CustomControl.nameListContains(dropdown, 'open')) {
                 const optionsContainer = CustomControl.getByName(dropdown, 'ddl-options');
