@@ -43,7 +43,7 @@ async function init() {
         label: "2- المناطق (قائمة عادية - اختيار واحد - بحث)",
         data: data,
         flags: {
-            search: { enabled: true }
+            search: "ااااااااا"
         }
     })
 

@@ -749,7 +749,7 @@ export const CustomControl = {
         const dropdownContainer = document.getElementById(`${containerId}_ddl`);
         if (!dropdownContainer) return;
 
-        // ✅ Extract settings and data from DOM structure for this specific dropdown
+        // Extract settings and data from DOM structure for this specific dropdown
         const checkboxElement = CustomControl.getByName(dropdownContainer, 'ddl-checkbox');
         const childrenElement = CustomControl.getByName(dropdownContainer, 'ddl-children');
         const hasMultiSelect = !!checkboxElement; //* falsy check that returns boolean --> (!!checkboxElement) returns true if checkboxElement is not null or undefined
@@ -771,10 +771,10 @@ export const CustomControl = {
             displayText = CustomControl.getSingleSelection(dropdownContainer, data);
         }
 
-        // ✅ Update selected container display
+        // Update selected container display
         selectedContent.innerText = displayText || "لا يوجد عناصر مختارة";
 
-        // ✅ Update dropdown header with selected items (new feature)
+        // Update dropdown header with selected items (new feature)
         CustomControl.updateDropdownHeader(dropdownContainer, displayText);
     },
 
@@ -807,7 +807,7 @@ export const CustomControl = {
     },
 
     /**
-     * Extract data structure from DOM elements.
+     ** Extract data structure from DOM elements.
      * @param {HTMLElement} dropdownContainer - Dropdown container element
      * @returns {Array} Data structure reconstructed from DOM
      */
@@ -846,7 +846,7 @@ export const CustomControl = {
     },
 
     /**
-     * Extract container ID from a DOM element (checkbox, etc.).
+     ** Extract container ID from a DOM element (checkbox, etc.).
      * @param {HTMLElement} element - DOM element with ID containing container info
      * @returns {string|null} Container ID or null if not extractable
      */
@@ -886,7 +886,7 @@ export const CustomControl = {
     },
 
     /**
-     * Get tree view selections in "Parent ← child1, child2" format.
+     ** Get tree view selections in "Parent ← child1, child2" format.
      * @param {HTMLElement} dropdownContainer - Dropdown container element
      * @param {Array} data - Hierarchical data for this specific dropdown
      * @returns {string} Formatted selection text
@@ -938,7 +938,7 @@ export const CustomControl = {
     },
 
     /**
-     * Get flat selections in "option1, option2, option3" format.
+     ** Get flat selections in "option1, option2, option3" format.
      * @param {HTMLElement} dropdownContainer - Dropdown container element
      * @param {Array} data - Hierarchical data for this specific dropdown
      * @returns {string} Formatted selection text
@@ -959,7 +959,7 @@ export const CustomControl = {
     },
 
     /**
-     * Get single selection in "option1" format.
+     ** Get single selection in "option1" format.
      * @param {HTMLElement} dropdownContainer - Dropdown container element
      * @param {Array} data - Hierarchical data for this specific dropdown
      * @returns {string} Selected option text
@@ -1076,7 +1076,7 @@ export const CustomControl = {
     },
 
     /**
-     * Handle Select All button click - select all options.
+     ** Handle Select All button click - select all options.
      * @param {string} containerId - Container ID for this dropdown instance
      */
     handleSelectAll: function (containerId) {
@@ -1114,7 +1114,7 @@ export const CustomControl = {
     },
 
     /**
-     * Handle Clear All button click - clear all options.
+     ** Handle Clear All button click - clear all options.
      * @param {string} containerId - Container ID for this dropdown instance
      */
     handleClearAll: function (containerId) {
@@ -1152,7 +1152,7 @@ export const CustomControl = {
     },
 
     /**
-     * Handle search functionality - filter options based on search term.
+     ** Handle search functionality - filter options based on search term.
      * @param {string} containerId - Container ID for this dropdown instance
      * @param {string} searchTerm - The search term to filter by
      */
@@ -1266,7 +1266,7 @@ export const CustomControl = {
     },
 
     /**
-     * Add checkbox event listeners to parent and child checkboxes.
+     ** Add checkbox event listeners to parent and child checkboxes.
      * @param {HTMLElement} optionsContainer - Options container element
      */
     addCheckboxEventListeners: function (optionsContainer) {
@@ -1306,7 +1306,7 @@ export const CustomControl = {
     },
 
     /**
-     * Add event listeners for dropdown functionality.
+     ** Add event listeners for dropdown functionality.
      * @param {HTMLElement} ddlWrapper - Dropdown wrapper element
      * @param {HTMLElement} header - Header element
      * @param {HTMLElement} optionsContainer - Options container element
@@ -1333,12 +1333,12 @@ export const CustomControl = {
     },
 
     /**
-     * Toggle dropdown open/close state.
+     ** Toggle dropdown open/close state.
      * @param {HTMLElement} ddlWrapper - Dropdown wrapper element
      * @param {HTMLElement} optionsContainer - Options container element
      */
     /**
-     * Close all other dropdowns except the current one.
+     ** Close all other dropdowns except the current one.
      * @param {HTMLElement} currentWrapper - Current dropdown wrapper to keep open
      */
     closeAllOtherDropdowns: function (currentWrapper) {
@@ -1366,7 +1366,7 @@ export const CustomControl = {
     },
 
     /**
-     * Open the dropdown.
+     ** Open the dropdown.
      * @param {HTMLElement} ddlWrapper - Dropdown wrapper element
      * @param {HTMLElement} optionsContainer - Options container element
      */
@@ -1376,7 +1376,7 @@ export const CustomControl = {
     },
 
     /**
-     * Close the dropdown.
+     ** Close the dropdown.
      * @param {HTMLElement} ddlWrapper - Dropdown wrapper element
      * @param {HTMLElement} optionsContainer - Options container element
      */
@@ -1386,7 +1386,7 @@ export const CustomControl = {
     },
 
     /**
-     * Render base container (label + ddl header + placeholder).
+     ** Render base container (label + ddl header + placeholder).
      * @param {HTMLElement} container - Target container
      */
     renderBase: function (container, settings) {
@@ -1405,10 +1405,10 @@ export const CustomControl = {
         // Populate options container with buttons and search box
         CustomControl.populateOptionsContainer(optionsContainer, settings);
 
-        // ✅ Render JSON options into dropdown
+        // Render JSON options into dropdown
         CustomControl.renderOptions(settings.data, optionsContainer, settings);
 
-        // ✅ Create selected options display area
+        // Create selected options display area
         const selectedDisplay = CustomControl.createSelectedDisplay(settings);
 
         // Assemble dropdown structure
@@ -1420,12 +1420,12 @@ export const CustomControl = {
         // Add event listeners for interactivity
         CustomControl.addEventListeners(ddlWrapper, header, optionsContainer);
 
-        // ✅ Add checkbox event listeners if multiSelect is enabled
+        // Add checkbox event listeners if multiSelect is enabled
         if (settings.flags.multiSelect.enabled) {
             CustomControl.addCheckboxEventListeners(optionsContainer);
         }
 
-        // ✅ Initialize selected display for this specific dropdown
+        // Initialize selected display for this specific dropdown
         CustomControl.updateSelectedDisplay(settings.containerId);
     }
 };
