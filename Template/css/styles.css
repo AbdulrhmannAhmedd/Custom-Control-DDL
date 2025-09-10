@@ -6,7 +6,7 @@
 
 [name~="container"] {
     max-width: 400px;
-    margin: 2rem auto;
+    margin: 0 auto 2rem auto;
     padding: 1rem;
     font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
     direction: rtl; 
@@ -101,11 +101,18 @@ label {
     overflow-y: auto;
     z-index: 1000;
     box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
-    transition: all 0.3s ease;
+    opacity: 1;
+    transform: translateY(0) scaleY(1);
+    transform-origin: top;
+    transition: opacity 0.3s ease, transform 0.3s ease, visibility 0.3s ease;
+    visibility: visible;
 }
 
 [name~="ddl-options"][name~="hidden"] {
-    display: none;
+    opacity: 0;
+    transform: translateY(-10px) scaleY(0.95);
+    visibility: hidden;
+    pointer-events: none;
 }
 
 [name~="ddl-options"]::-webkit-scrollbar {
@@ -287,6 +294,28 @@ label {
     min-height: 20px; 
 }
 
+/* HTML Label styling for dropdown containers */
+[name~="ddl-label"] {
+    display: block;
+    font-weight: bold;
+    margin-top: 40px;
+    margin-bottom: 8px;
+    color: #2c3e50;
+    font-size: 16px;
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    direction: rtl;
+    text-align: right;
+    padding: 0 1rem;
+    max-width: 400px;
+    margin-left: auto;
+    margin-right: auto;
+}
+
+/* First label doesn't need top margin */
+[name~="ddl-label"]:first-of-type {
+    margin-top: 0;
+}
+
 [name~="ddl-parent-label"]:hover [name~="ddl-checkbox"],
 [name~="ddl-child"]:hover [name~="ddl-checkbox"] {
     transform: scale(1.1);
@@ -328,10 +357,11 @@ label {
     font-style: italic;
 }
 
-[name~="ddl-option"].ddl-selected {
+[name~="ddl-option"][name~="ddl-selected"] {
     background-color: #e3f2fd;
     color: #1976d2;
     font-weight: 600;
+    border-left: 3px solid #1976d2;
 }
 
 [name~="ddl-option"] {
@@ -413,20 +443,39 @@ label {
     background-color: #f8f9fa;
 }
 
-.ddl-placeholder-option {
-    pointer-events: none;
-    opacity: 0.6;
+[name~="ddl-placeholder-option"] {
+    opacity: 0.7;
     font-style: italic;
-    color: #95a5a6 !important;
+    color: #6c757d !important;
     padding: 12px 16px;
     border-bottom: 1px solid #ecf0f1;
     background-color: #f8f9fa !important;
-    cursor: not-allowed;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    position: relative;
 }
 
 [name~="ddl-placeholder-option"]:hover {
+    background-color: #e9ecef !important;
+    color: #495057 !important;
+    opacity: 0.9;
+    transform: translateX(2px);
+}
+
+/* Disabled placeholder option styling */
+[name~="ddl-placeholder-option"][name~="ddl-disabled"] {
+    opacity: 0.4 !important;
+    color: #adb5bd !important;
     background-color: #f8f9fa !important;
-    color: #95a5a6 !important;
+    cursor: not-allowed !important;
+    pointer-events: none;
+}
+
+[name~="ddl-placeholder-option"][name~="ddl-disabled"]:hover {
+    background-color: #f8f9fa !important;
+    color: #adb5bd !important;
+    opacity: 0.4 !important;
+    transform: none !important;
 }
 
 [name~="ddl-no-results"] {
@@ -480,4 +529,28 @@ label {
 
 [name~="custom-ddl"].error [name~="ddl-header"] {
     color: #e74c3c;
+}
+
+/* Utility name selectors for show/hide functionality */
+[name~="ddl-hidden"] {
+    display: none !important;
+}
+
+[name~="ddl-visible"] {
+    display: block !important;
+}
+
+/* Multi-select highlighting for checked options */
+[name~="ddl-parent-label"][name~="ddl-checked"] {
+    background-color: #e8f5e8 !important;
+    color: #27ae60 !important;
+    border-left: 3px solid #27ae60;
+    font-weight: 600;
+}
+
+[name~="ddl-child"][name~="ddl-checked"] {
+    background-color: #e3f2fd !important;
+    color: #1976d2 !important;
+    border-left: 3px solid #1976d2;
+    font-weight: 500;
 }
