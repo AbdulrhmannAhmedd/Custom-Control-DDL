@@ -554,3 +554,93 @@ label {
     border-left: 3px solid #1976d2;
     font-weight: 500;
 }
+
+/* Multi-select navigation icon */
+[name~="ddl-multi-nav-icon"] {
+    position: sticky;
+    bottom: 5px;
+    left: 10px;
+    width: 36px;
+    height: 36px;
+    border-radius: 50%;
+    background-color: rgba(52, 152, 219, 0.9);
+    color: white;
+    display: none;
+    cursor: pointer;
+    box-shadow: 0 2px 8px rgba(52, 152, 219, 0.4);
+    transition: all 0.3s ease;
+    z-index: 1100;
+    font-size: 18px;
+    font-weight: normal;
+    user-select: none;
+    pointer-events: auto;
+    line-height: 36px;
+    text-align: center;
+    border: 2px solid white;
+    margin-top: auto;
+    margin-left: 10px;
+    margin-bottom: 5px;
+    float: left;
+    clear: left;
+}
+
+
+[name~="ddl-multi-nav-icon"]:hover {
+    background-color: rgba(41, 128, 185, 0.95);
+    transform: scale(1.1);
+    box-shadow: 0 3px 10px rgba(52, 152, 219, 0.5);
+}
+
+[name~="ddl-multi-nav-icon"]:active {
+    transform: scale(0.95);
+}
+
+/* Show navigation icon when multi-select has multiple selections */
+[name~="ddl-multi-nav-icon"][name~="ddl-visible"] {
+    display: block;
+}
+
+/* Animation for navigation icon appearance */
+@keyframes navIconFadeIn {
+    from {
+        opacity: 0;
+        transform: scale(0.5);
+    }
+    to {
+        opacity: 1;
+        transform: scale(1);
+    }
+}
+
+[name~="ddl-multi-nav-icon"][name~="ddl-visible"] {
+    animation: navIconFadeIn 0.3s ease-out;
+}
+
+/* Navigation highlight effect */
+[name~="ddl-nav-highlight"] {
+    background-color: #fff3cd !important;
+    border-left: 4px solid #ffc107 !important;
+    box-shadow: 0 0 8px rgba(255, 193, 7, 0.3) !important;
+    transform: translateX(4px);
+    transition: all 0.3s ease !important;
+}
+
+/* Animation for navigation highlight */
+@keyframes navHighlight {
+    0% {
+        background-color: #fff3cd;
+        transform: translateX(0);
+    }
+    50% {
+        background-color: #fff3cd;
+        transform: translateX(8px);
+    }
+    100% {
+        background-color: #fff3cd;
+        transform: translateX(4px);
+    }
+}
+
+[name~="ddl-nav-highlight"] {
+    animation: navHighlight 0.6s ease-in-out;
+}

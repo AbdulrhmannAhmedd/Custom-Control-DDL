@@ -149,14 +149,17 @@ export const CustomControl = {
      * @param {string} params.containerId - ID of the container element where dropdown will be rendered
      * @param {string} [params.placeholder="اختر..."] - Placeholder text shown before selection
      * @param {Array}  params.data - Hierarchical JSON data [{id, name, children:[]}]
-     * @param {Object} [params.flags] - Optional feature toggles
+     * @param {Object} [params.flags] - Optional feature toggles (STRICT boolean values only)
      *        Example: {
-     *           search: { enabled: true },
-     *           multiSelect: { enabled: true },
-     *           treeView: { enabled: true },
-     *           selectAllBtn: { enabled: true },
-     *           clearAllBtn: { enabled: true }
+     *           hasSearch: true,        // ONLY literal true or false
+     *           hasMultiSelect: false,  // ONLY literal true or false
+     *           hasTreeView: true,      // ONLY literal true or false
+     *           hasSelectAllBtn: false, // ONLY literal true or false
+     *           hasClearAllBtn: true    // ONLY literal true or false
      *        }
+     *        STRICT TYPE SAFETY:
+     *        ✅ Valid: true, false, undefined (defaults to false)
+     *        ❌ Invalid: 1, 0, "yes", "", [], {}, null, etc. (all default to false with warning)
      */
     initialize: function (params) {
         //* Validation: Ensure container exists
@@ -166,18 +169,36 @@ export const CustomControl = {
             return;
         }
 
+        //* Validate flag types for better developer experience - STRICT boolean validation
+        if (params.flags) {
+            const flagNames = ['hasSearch', 'hasMultiSelect', 'hasTreeView', 'hasSelectAllBtn', 'hasClearAllBtn'];
+            flagNames.forEach(flagName => {
+                const flagValue = params.flags[flagName];
+                if (flagValue !== undefined && flagValue !== true && flagValue !== false) {
+                    console.warn(`[CustomControl] Flag '${flagName}' must be literal true or false, received: ${typeof flagValue} (${JSON.stringify(flagValue)}). Defaulting to false.`);
+                }
+            });
+        }
+
+        //* Helper function for strict boolean validation
+        const getStrictBoolean = (value) => {
+            if (value === true) return true;
+            if (value === false) return false;
+            return false; // Default for any non-boolean value (including undefined)
+        };
+
         //* Prepare settings for this instance (no global on the object level so every drop down will have its own settings)
         const settings = {
             containerId: params.containerId,
             placeholder: params.placeholder || "اختر...",
             data: params.data || [],
             flags: {
-                search: params.flags?.search || { enabled: false },
-                multiSelect: params.flags?.multiSelect || { enabled: false },
-                treeView: params.flags?.treeView || { enabled: false },
-                selectAllBtn: params.flags?.selectAllBtn || { enabled: false },
-                clearAllBtn: params.flags?.clearAllBtn || { enabled: false }
-                //! Flags Are False By Default
+                hasSearch: getStrictBoolean(params.flags?.hasSearch),
+                hasMultiSelect: getStrictBoolean(params.flags?.hasMultiSelect),
+                hasTreeView: getStrictBoolean(params.flags?.hasTreeView),
+                hasSelectAllBtn: getStrictBoolean(params.flags?.hasSelectAllBtn),
+                hasClearAllBtn: getStrictBoolean(params.flags?.hasClearAllBtn)
+                //! Only literal true/false accepted - all other values default to false
             }
         };
 
@@ -227,11 +248,37 @@ export const CustomControl = {
     },
 
     /**
+     * Create multi-select navigation icon.
+     * @param {string} containerId - Container ID for this instance
+     * @returns {HTMLElement} Navigation icon element
+     */
+    createMultiNavIcon: function (containerId) {
+        const navIcon = document.createElement("div");
+        navIcon.setAttribute('name', 'ddl-multi-nav-icon');
+        navIcon.innerHTML = "↓";
+        navIcon.title = "الانتقال إلى التحديد التالي";
+        
+        // Store container ID for navigation
+        navIcon.dataset.containerId = containerId;
+        
+        // Add click event listener
+        navIcon.addEventListener('click', function(e) {
+            e.stopPropagation();
+            const containerId = e.currentTarget.dataset.containerId;
+            CustomControl.navigateToNextSelection(containerId);
+        });
+        
+        return navIcon;
+    },
+
+    /**
      * Create Select All button if enabled.
+     * @param {boolean} hasSelectAllBtn - Whether to create the button
+     * @param {string} containerId - Container ID for this instance
      * @returns {HTMLElement|null} Select All button element or null
      */
-    createSelectAllButton: function (settings) {
-        if (!settings.flags.selectAllBtn.enabled) {
+    createSelectAllButton: function (hasSelectAllBtn, containerId) {
+        if (!hasSelectAllBtn) {
             return null;
         }
         
@@ -240,7 +287,7 @@ export const CustomControl = {
             btnSelectAll.setAttribute('name', 'ddl-btn select-all');
         
         // Store container ID in button for reliable access
-        btnSelectAll.dataset.containerId = settings.containerId;
+        btnSelectAll.dataset.containerId = containerId;
         
         // Add event listener for Select All functionality
         btnSelectAll.addEventListener('click', function(e) {
@@ -254,10 +301,12 @@ export const CustomControl = {
 
     /**
      * Create Clear All button if enabled.
+     * @param {boolean} hasClearAllBtn - Whether to create the button
+     * @param {string} containerId - Container ID for this instance
      * @returns {HTMLElement|null} Clear All button element or null
      */
-    createClearAllButton: function (settings) {
-        if (!settings.flags.clearAllBtn.enabled) {
+    createClearAllButton: function (hasClearAllBtn, containerId) {
+        if (!hasClearAllBtn) {
             return null;
         }
         
@@ -266,7 +315,7 @@ export const CustomControl = {
             btnClearAll.setAttribute('name', 'ddl-btn clear-all');
         
         // Store container ID in button for reliable access
-        btnClearAll.dataset.containerId = settings.containerId;
+        btnClearAll.dataset.containerId = containerId;
         
         // Add event listener for Clear All functionality
         btnClearAll.addEventListener('click', function(e) {
@@ -280,10 +329,12 @@ export const CustomControl = {
 
     /**
      * Create search input box if enabled.
+     * @param {boolean} hasSearch - Whether to create the search box
+     * @param {string} containerId - Container ID for this instance
      * @returns {HTMLElement|null} Search input element or null
      */
-        createSearchBox: function (settings) {
-        if (!settings.flags.search.enabled) {
+        createSearchBox: function (hasSearch, containerId) {
+        if (!hasSearch) {
             return null;
         }
         
@@ -293,7 +344,7 @@ export const CustomControl = {
             searchBox.setAttribute('name', 'ddl-search');
         
         // Store container ID in search box for reliable access
-        searchBox.dataset.containerId = settings.containerId;
+        searchBox.dataset.containerId = containerId;
         
         // Add event listener for search functionality
         searchBox.addEventListener('input', function(e) {
@@ -307,12 +358,15 @@ export const CustomControl = {
 
     /**
      * Create button container for action buttons.
+     * @param {boolean} hasMultiSelect - Whether multi-select is enabled
+     * @param {boolean} hasSelectAllBtn - Whether to show select all button
+     * @param {boolean} hasClearAllBtn - Whether to show clear all button
+     * @param {string} containerId - Container ID for this instance
      * @returns {HTMLElement|null} Button container element or null
      */
-    createButtonContainer: function (settings) {
-        const isMultiSelect = settings.flags.multiSelect.enabled;
-        const showSelectAll = isMultiSelect && settings.flags.selectAllBtn.enabled;
-        const showClearAll = isMultiSelect && settings.flags.clearAllBtn.enabled;
+    createButtonContainer: function (hasMultiSelect, hasSelectAllBtn, hasClearAllBtn, containerId) {
+        const showSelectAll = hasMultiSelect && hasSelectAllBtn;
+        const showClearAll = hasMultiSelect && hasClearAllBtn;
 
         // Only create container if at least one button should be shown
         if (!showSelectAll && !showClearAll) {
@@ -323,12 +377,12 @@ export const CustomControl = {
         buttonContainer.setAttribute('name', 'ddl-button-container');
 
         if (showSelectAll) {
-            const selectAllBtn = CustomControl.createSelectAllButton(settings);
+            const selectAllBtn = CustomControl.createSelectAllButton(hasSelectAllBtn, containerId);
             buttonContainer.appendChild(selectAllBtn);
         }
 
         if (showClearAll) {
-            const clearAllBtn = CustomControl.createClearAllButton(settings);
+            const clearAllBtn = CustomControl.createClearAllButton(hasClearAllBtn, containerId);
             buttonContainer.appendChild(clearAllBtn);
         }
 
@@ -338,110 +392,67 @@ export const CustomControl = {
     /**
      * Add action buttons and search box to options container.
      * @param {HTMLElement} optionsContainer - Options container element
+     * @param {boolean} hasMultiSelect - Whether multi-select is enabled
+     * @param {boolean} hasSelectAllBtn - Whether to show select all button
+     * @param {boolean} hasClearAllBtn - Whether to show clear all button
+     * @param {boolean} hasSearch - Whether to show search box
+     * @param {string} containerId - Container ID for this instance
      */
-    populateOptionsContainer: function (optionsContainer, settings) {
+    populateOptionsContainer: function (optionsContainer, hasMultiSelect, hasSelectAllBtn, hasClearAllBtn, hasSearch, containerId) {
         // Only show buttons if multiSelect is enabled
-        const isMultiSelect = settings.flags.multiSelect.enabled;
-        const showSelectAll = isMultiSelect && settings.flags.selectAllBtn.enabled;
-        const showClearAll = isMultiSelect && settings.flags.clearAllBtn.enabled;
+        const showSelectAll = hasMultiSelect && hasSelectAllBtn;
+        const showClearAll = hasMultiSelect && hasClearAllBtn;
         
         if (showSelectAll || showClearAll) {
-            const buttonContainer = CustomControl.createButtonContainer(settings);
+            const buttonContainer = CustomControl.createButtonContainer(hasMultiSelect, hasSelectAllBtn, hasClearAllBtn, containerId);
             optionsContainer.appendChild(buttonContainer);
         }
 
         // Add search box if enabled
-        if (settings.flags.search.enabled) {
-            const searchBox = CustomControl.createSearchBox(settings);
+        if (hasSearch) {
+            const searchBox = CustomControl.createSearchBox(hasSearch, containerId);
             optionsContainer.appendChild(searchBox);
         }
     },
 
     /**
-     * Set to track used IDs and prevent duplicates , better for performance too O(1)
-     */
-    usedIds: new Set(),
-
-    /**
-     * Reset used IDs tracker (call before rendering)
-     */
-    resetIdTracker: function () {
-        CustomControl.usedIds.clear();
-    },
-
-    /**
-     * Validate and track ID for duplicates.
-     * ✅ Validation: Checks for duplicate IDs and logs warnings
-     * 
-     * @param {string} generatedId - The generated ID to validate
-     * @param {string|number} parentId - Parent ID from JSON
-     * @param {string|number} [childId] - Child ID from JSON (optional)
-     * @returns {boolean} True if ID is valid (not duplicate)
-     */
-    validateId: function (generatedId, parentId, childId) {
-        // Check for duplicate IDs
-        if (CustomControl.usedIds.has(generatedId)) {
-            const elementType = childId ? 'Child' : 'Parent';
-            const dataInfo = childId 
-                ? `parentId: ${parentId}, childId: ${childId}`
-                : `parentId: ${parentId}`;
-            
-            console.warn(`[CustomControl] ⚠️ Duplicate ID detected!`);
-            console.warn(`Generated ID: "${generatedId}"`);
-            console.warn(`Element Type: ${elementType}`);
-            console.warn(`Data: ${dataInfo}`);
-            console.warn(`This may cause unexpected behavior. Please check your JSON data for duplicate IDs.`);
-            
-            return false; // Invalid (duplicate)
-        } else {
-            // Track this ID as used
-            CustomControl.usedIds.add(generatedId);
-            return true; // Valid (unique)
-        }
-    },
-
-    /**
-     * Generate unique element ID.
+     * Generate element ID.
      * Format: containerId-parentId[-childId]
      * 
      * @param {string} containerId - The control's container ID
      * @param {string|number} parentId - Parent ID from JSON
      * @param {string|number} [childId] - Child ID from JSON (optional)
-     * @returns {string} Unique element ID
+     * @returns {string} Element ID
      */
     generateId: function (containerId, parentId, childId) {
-        const generatedId = childId 
+        return childId 
             ? `${containerId}-${parentId}-${childId}`
             : `${containerId}-${parentId}`;
-
-        // ✅ Validate the generated ID
-        CustomControl.validateId(generatedId, parentId, childId);
-
-        return generatedId;
     },
 
     /**
      * Add placeholder option that clears all selections when clicked.
      * If Clear All button exists, placeholder is visible but disabled to avoid redundancy.
      * @param {HTMLElement} optionsContainer - Options container element
-     * @param {Object} settings - Settings object for this instance
+     * @param {boolean} hasMultiSelect - Whether multi-select is enabled
+     * @param {boolean} hasClearAllBtn - Whether clear all button is enabled
+     * @param {string} placeholder - Placeholder text
+     * @param {string} containerId - Container ID for this instance
      */
-    addPlaceholderOption: function (optionsContainer, settings) {
+    addPlaceholderOption: function (optionsContainer, hasMultiSelect, hasClearAllBtn, placeholder, containerId) {
         // Check if Clear All button is enabled - if so, make placeholder disabled
-        const isMultiSelect = settings.flags.multiSelect.enabled;
-        const hasClearAllBtn = isMultiSelect && settings.flags.clearAllBtn.enabled;
+        const shouldDisable = hasMultiSelect && hasClearAllBtn;
         
         const placeholderDiv = document.createElement("div");
         placeholderDiv.setAttribute('name', 'ddl-placeholder-option');
-        placeholderDiv.innerText = settings.placeholder;
+        placeholderDiv.innerText = placeholder;
         
         // Store container ID for potential click handler
-        placeholderDiv.dataset.containerId = settings.containerId;
+        placeholderDiv.dataset.containerId = containerId;
         
-        if (hasClearAllBtn) {
+        if (shouldDisable) {
             // Disable placeholder when Clear All button exists
             CustomControl.nameListAdd(placeholderDiv, 'ddl-disabled');
-            console.log(`[CustomControl] Placeholder option disabled for ${settings.containerId} - Clear All button provides this functionality`);
         } else {
             // Enable placeholder with click functionality
             placeholderDiv.addEventListener('click', function(e) {
@@ -461,30 +472,21 @@ export const CustomControl = {
         optionsContainer.appendChild(placeholderDiv);
     },
 
-    /**
-     * Initialize options rendering - reset tracker and add placeholder.
-     * @param {HTMLElement} optionsContainer - Options container element
-     * @param {Object} settings - Settings object for this instance
-     */
-    initializeOptionsRendering: function(optionsContainer, settings) {
-        CustomControl.resetIdTracker();
-        CustomControl.addPlaceholderOption(optionsContainer, settings);
-    },
 
     /**
      * Create parent element structure with unique ID.
      * @param {Object} parent - Parent data object
-     * @param {Object} settings - Settings object for this instance
+     * @param {string} containerId - Container ID for this instance
      * @returns {Object} Object containing parentDiv and parentLabel
      */
-    createParentElement: function(parent, settings) {
+    createParentElement: function(parent, containerId) {
         const parentDiv = document.createElement("div");
         parentDiv.setAttribute('name', 'ddl-parent');
 
         const parentLabel = document.createElement("div");
         parentLabel.setAttribute('name', 'ddl-parent-label');
         parentLabel.dataset.id = parent.id;
-        parentLabel.id = CustomControl.generateId(settings.containerId, parent.id);
+        parentLabel.id = CustomControl.generateId(containerId, parent.id);
 
         return { parentDiv, parentLabel };
     },
@@ -493,10 +495,10 @@ export const CustomControl = {
      * Setup parent content (checkbox + text or just text).
      * @param {HTMLElement} parentLabel - Parent label element
      * @param {Object} parent - Parent data object
-     * @param {Object} settings - Settings object for this instance
+     * @param {boolean} hasMultiSelect - Whether multi-select is enabled
      */
-    setupParentContent: function(parentLabel, parent, settings) {
-        if (settings.flags.multiSelect.enabled) {
+    setupParentContent: function(parentLabel, parent, hasMultiSelect) {
+        if (hasMultiSelect) {
             const parentCheckbox = document.createElement("input");
             parentCheckbox.type = "checkbox";
             parentCheckbox.setAttribute('name', 'ddl-checkbox parent-checkbox');
@@ -518,17 +520,18 @@ export const CustomControl = {
      * Create a single child element with proper setup.
      * @param {Object} child - Child data object
      * @param {Object} parent - Parent data object
-     * @param {Object} settings - Settings object for this instance
+     * @param {string} containerId - Container ID for this instance
+     * @param {boolean} hasMultiSelect - Whether multi-select is enabled
      * @returns {HTMLElement} Child element
      */
-    createChildElement: function(child, parent, settings) {
+    createChildElement: function(child, parent, containerId, hasMultiSelect) {
         const childDiv = document.createElement("div");
         childDiv.setAttribute('name', 'ddl-child');
         childDiv.dataset.id = child.id;
         childDiv.dataset.parentId = parent.id;
-        childDiv.id = CustomControl.generateId(settings.containerId, parent.id, child.id);
+        childDiv.id = CustomControl.generateId(containerId, parent.id, child.id);
 
-        CustomControl.setupChildContent(childDiv, child, parent, settings);
+        CustomControl.setupChildContent(childDiv, child, parent, hasMultiSelect);
         
         return childDiv;
     },
@@ -538,10 +541,10 @@ export const CustomControl = {
      * @param {HTMLElement} childDiv - Child element
      * @param {Object} child - Child data object
      * @param {Object} parent - Parent data object
-     * @param {Object} settings - Settings object for this instance
+     * @param {boolean} hasMultiSelect - Whether multi-select is enabled
      */
-    setupChildContent: function(childDiv, child, parent, settings) {
-        if (settings.flags.multiSelect.enabled) {
+    setupChildContent: function(childDiv, child, parent, hasMultiSelect) {
+        if (hasMultiSelect) {
             const childCheckbox = document.createElement("input");
             childCheckbox.type = "checkbox";
             childCheckbox.setAttribute('name', 'ddl-checkbox child-checkbox');
@@ -573,15 +576,16 @@ export const CustomControl = {
     /**
      * Create children container and populate with child elements.
      * @param {Object} parent - Parent data object
-     * @param {Object} settings - Settings object for this instance
+     * @param {string} containerId - Container ID for this instance
+     * @param {boolean} hasMultiSelect - Whether multi-select is enabled
      * @returns {HTMLElement} Children container element
      */
-    createChildrenSection: function(parent, settings) {
+    createChildrenSection: function(parent, containerId, hasMultiSelect) {
         const childrenContainer = document.createElement("div");
         childrenContainer.setAttribute('name', 'ddl-children'); // expanded by default
 
         parent.children.forEach(child => {
-            const childDiv = CustomControl.createChildElement(child, parent, settings);
+            const childDiv = CustomControl.createChildElement(child, parent, containerId, hasMultiSelect);
             childrenContainer.appendChild(childDiv);
         });
 
@@ -592,9 +596,9 @@ export const CustomControl = {
      * Add expand/collapse behavior to tree view parents.
      * @param {HTMLElement} parentLabel - Parent label element
      * @param {HTMLElement} childrenContainer - Children container element
-     * @param {Object} settings - Settings object for this instance
+     * @param {boolean} hasMultiSelect - Whether multi-select is enabled
      */
-    addTreeViewBehavior: function(parentLabel, childrenContainer, settings) {
+    addTreeViewBehavior: function(parentLabel, childrenContainer, hasMultiSelect) {
         const toggleChildren = function () {
             CustomControl.nameListToggle(childrenContainer, "hidden");
             const isNowVisible = !CustomControl.nameListContains(childrenContainer, "hidden");
@@ -606,7 +610,7 @@ export const CustomControl = {
             }
         };
 
-        if (settings.flags.multiSelect.enabled) {
+        if (hasMultiSelect) {
             // When checkboxes exist, only text should expand/collapse
             const parentTextElement = CustomControl.getByName(parentLabel, 'ddl-label-text');
             if (parentTextElement) {
@@ -627,10 +631,9 @@ export const CustomControl = {
      * Add single selection handlers to parent elements.
      * @param {HTMLElement} parentLabel - Parent label element
      * @param {Object} parent - Parent data object
-     * @param {Object} settings - Settings object for this instance
+     * @param {boolean} hasTreeView - Whether tree view is enabled
      */
-    addSingleSelectionHandlers: function(parentLabel, parent, settings) {
-        const hasTreeView = settings.flags.treeView.enabled;
+    addSingleSelectionHandlers: function(parentLabel, parent, hasTreeView) {
         const hasChildren = parent.children && parent.children.length > 0;
         
         // In single selection:
@@ -654,36 +657,40 @@ export const CustomControl = {
      * Render dropdown options (orchestrator method).
      * @param {Array} data - Hierarchical data [{id, name, children:[]}]
      * @param {HTMLElement} optionsContainer - Target options container
-     * @param {Object} settings - Settings object for this instance
+     * @param {boolean} hasMultiSelect - Whether multi-select is enabled
+     * @param {boolean} hasTreeView - Whether tree view is enabled
+     * @param {boolean} hasClearAllBtn - Whether clear all button is enabled
+     * @param {string} placeholder - Placeholder text
+     * @param {string} containerId - Container ID for this instance
      */
-    renderOptions: function (data, optionsContainer, settings) {
-        // Initialize rendering
-        CustomControl.initializeOptionsRendering(optionsContainer, settings);
+    renderOptions: function (data, optionsContainer, hasMultiSelect, hasTreeView, hasClearAllBtn, placeholder, containerId) {
+        // Add placeholder option
+        CustomControl.addPlaceholderOption(optionsContainer, hasMultiSelect, hasClearAllBtn, placeholder, containerId);
 
         // Process each parent
         data.forEach(parent => {
             // Create parent structure
-            const { parentDiv, parentLabel } = CustomControl.createParentElement(parent, settings);
-            CustomControl.setupParentContent(parentLabel, parent, settings);
+            const { parentDiv, parentLabel } = CustomControl.createParentElement(parent, containerId);
+            CustomControl.setupParentContent(parentLabel, parent, hasMultiSelect);
             parentDiv.appendChild(parentLabel);
 
             // Handle tree view children
-            if (settings.flags.treeView.enabled && parent.children && parent.children.length > 0) {
+            if (hasTreeView && parent.children && parent.children.length > 0) {
                 // Mark parent as having children for arrow styling and set as expanded by default
                 CustomControl.nameListAdd(parentLabel, "has-children");
                 CustomControl.nameListAdd(parentLabel, "expanded"); // expanded by default
                 
                 // Create children section
-                const childrenContainer = CustomControl.createChildrenSection(parent, settings);
+                const childrenContainer = CustomControl.createChildrenSection(parent, containerId, hasMultiSelect);
                 parentDiv.appendChild(childrenContainer);
 
                 // Add expand/collapse behavior
-                CustomControl.addTreeViewBehavior(parentLabel, childrenContainer, settings);
+                CustomControl.addTreeViewBehavior(parentLabel, childrenContainer, hasMultiSelect);
             }
 
             // Add single selection handlers if needed
-            if (!settings.flags.multiSelect.enabled) {
-                CustomControl.addSingleSelectionHandlers(parentLabel, parent, settings);
+            if (!hasMultiSelect) {
+                CustomControl.addSingleSelectionHandlers(parentLabel, parent, hasTreeView);
             }
 
             optionsContainer.appendChild(parentDiv);
@@ -826,6 +833,229 @@ export const CustomControl = {
     },
 
     /**
+     * Update navigation icon visibility based on multi-select selections.
+     * @param {string} containerId - Container ID for this dropdown instance
+     */
+    updateMultiNavIconVisibility: function (containerId) {
+        const dropdownContainer = document.getElementById(`${containerId}_ddl`);
+        if (!dropdownContainer) return;
+
+        const optionsContainer = CustomControl.getByName(dropdownContainer, 'ddl-options');
+        const navIcon = CustomControl.getByName(optionsContainer, 'ddl-multi-nav-icon');
+        if (!navIcon) return;
+
+        // Check if this is multi-select mode
+        const checkboxes = CustomControl.getAllByName(dropdownContainer, 'ddl-checkbox');
+        const hasMultiSelect = checkboxes.length > 0;
+        
+        // Check if dropdown is open
+        const isDropdownOpen = CustomControl.nameListContains(dropdownContainer, 'open');
+        
+        if (!hasMultiSelect || !isDropdownOpen) {
+            CustomControl.nameListRemove(navIcon, 'ddl-visible');
+            return;
+        }
+
+        // Count selections
+        const selectedCount = CustomControl.getMultiSelectSelectionCount(containerId);
+        
+        // Show icon if there are multiple selections (2 or more) AND dropdown is open
+        if (selectedCount >= 2) {
+            CustomControl.nameListAdd(navIcon, 'ddl-visible');
+        } else {
+            CustomControl.nameListRemove(navIcon, 'ddl-visible');
+        }
+    },
+
+    /**
+     * Get the count of selected items in multi-select mode.
+     * @param {string} containerId - Container ID for this dropdown instance
+     * @returns {number} Number of selected items
+     */
+    getMultiSelectSelectionCount: function (containerId) {
+        const dropdownContainer = document.getElementById(`${containerId}_ddl`);
+        if (!dropdownContainer) return 0;
+
+        const checkboxes = CustomControl.getAllByName(dropdownContainer, 'ddl-checkbox');
+        const checkedCheckboxes = checkboxes.filter(checkbox => checkbox.checked);
+        
+        return checkedCheckboxes.length;
+    },
+
+    /**
+     * Navigate to the next selected element in multi-select mode.
+     * @param {string} containerId - Container ID for this dropdown instance
+     */
+    navigateToNextSelection: function (containerId) {
+        const dropdownContainer = document.getElementById(`${containerId}_ddl`);
+        if (!dropdownContainer) return;
+
+        const optionsContainer = CustomControl.getByName(dropdownContainer, 'ddl-options');
+        if (!optionsContainer) return;
+
+        // Check if this is tree view mode
+        const hasTreeView = CustomControl.getByName(dropdownContainer, 'ddl-children') !== null;
+        
+        if (hasTreeView) {
+            CustomControl.navigateToNextTreeViewSelection(containerId, optionsContainer);
+        } else {
+            CustomControl.navigateToNextFlatSelection(containerId, optionsContainer);
+        }
+    },
+
+    /**
+     * Navigate to next selection in tree view mode (optimized for parents with selected children).
+     * @param {string} containerId - Container ID for this dropdown instance
+     * @param {HTMLElement} optionsContainer - Options container element
+     */
+    navigateToNextTreeViewSelection: function (containerId, optionsContainer) {
+        const dropdownContainer = document.getElementById(`${containerId}_ddl`);
+        if (!dropdownContainer) return;
+
+        // Get parents with selected children (optimization for tree view)
+        const parentsWithSelectedChildren = CustomControl.getParentsWithSelectedChildren(containerId);
+        
+        if (parentsWithSelectedChildren.length === 0) return;
+
+        // Get current scroll position
+        const currentScrollTop = optionsContainer.scrollTop;
+        const optionsRect = optionsContainer.getBoundingClientRect();
+        
+        // Find the next selected parent below current scroll position
+        let nextTarget = null;
+        
+        for (let parent of parentsWithSelectedChildren) {
+            const parentRect = parent.getBoundingClientRect();
+            // Check if parent is below the current visible area
+            if (parentRect.top > optionsRect.bottom) {
+                nextTarget = parent;
+                break;
+            }
+        }
+        
+        // If no parent is below, wrap to the first one
+        if (!nextTarget && parentsWithSelectedChildren.length > 0) {
+            nextTarget = parentsWithSelectedChildren[0];
+        }
+        
+        if (nextTarget) {
+            CustomControl.scrollToElement(nextTarget);
+            CustomControl.highlightNavigationTarget(nextTarget);
+        }
+    },
+
+    /**
+     * Navigate to next selection in flat view mode.
+     * @param {string} containerId - Container ID for this dropdown instance
+     * @param {HTMLElement} optionsContainer - Options container element
+     */
+    navigateToNextFlatSelection: function (containerId, optionsContainer) {
+        const dropdownContainer = document.getElementById(`${containerId}_ddl`);
+        if (!dropdownContainer) return;
+
+        const checkedCheckboxes = CustomControl.getAllByName(dropdownContainer, 'ddl-checkbox').filter(cb => cb.checked);
+        
+        if (checkedCheckboxes.length === 0) return;
+
+        // Get current scroll position
+        const optionsRect = optionsContainer.getBoundingClientRect();
+        
+        // Find the next selected element below current scroll position
+        let nextTarget = null;
+        
+        for (let checkbox of checkedCheckboxes) {
+            const targetElement = checkbox.closest('[name~="ddl-parent-label"]');
+            if (targetElement) {
+                const elementRect = targetElement.getBoundingClientRect();
+                // Check if element is below the current visible area
+                if (elementRect.top > optionsRect.bottom) {
+                    nextTarget = targetElement;
+                    break;
+                }
+            }
+        }
+        
+        // If no element is below, wrap to the first selected one
+        if (!nextTarget && checkedCheckboxes.length > 0) {
+            nextTarget = checkedCheckboxes[0].closest('[name~="ddl-parent-label"]');
+        }
+        
+        if (nextTarget) {
+            CustomControl.scrollToElement(nextTarget);
+            CustomControl.highlightNavigationTarget(nextTarget);
+        }
+    },
+
+    /**
+     * Get parents that have selected children (for tree view navigation optimization).
+     * @param {string} containerId - Container ID for this dropdown instance
+     * @returns {Array} Array of parent elements with selected children
+     */
+    getParentsWithSelectedChildren: function (containerId) {
+        const dropdownContainer = document.getElementById(`${containerId}_ddl`);
+        if (!dropdownContainer) return [];
+
+        const parentElements = CustomControl.getAllByName(dropdownContainer, 'ddl-parent');
+        const parentsWithSelectedChildren = [];
+        
+        parentElements.forEach(parentElement => {
+            const parentLabel = CustomControl.getByName(parentElement, 'ddl-parent-label');
+            if (!parentLabel) return;
+
+            const parentId = parentLabel.dataset.id;
+            
+            // Check if parent is selected OR has selected children
+            const parentCheckbox = dropdownContainer.querySelector(`[name*="parent-checkbox"][data-parent-id="${parentId}"]`);
+            const childCheckboxes = dropdownContainer.querySelectorAll(`[name*="child-checkbox"][data-parent-id="${parentId}"]`);
+            
+            const parentSelected = parentCheckbox && parentCheckbox.checked;
+            const hasSelectedChildren = Array.from(childCheckboxes).some(cb => cb.checked);
+            
+            if (parentSelected || hasSelectedChildren) {
+                parentsWithSelectedChildren.push(parentLabel);
+            }
+        });
+        
+        return parentsWithSelectedChildren;
+    },
+
+    /**
+     * Scroll to a specific element smoothly.
+     * @param {HTMLElement} element - Element to scroll to
+     */
+    scrollToElement: function (element) {
+        if (!element) return;
+        
+        element.scrollIntoView({
+            behavior: 'smooth',
+            block: 'nearest',
+            inline: 'nearest'
+        });
+    },
+
+    /**
+     * Add visual highlighting to navigation target.
+     * @param {HTMLElement} element - Element to highlight
+     */
+    highlightNavigationTarget: function (element) {
+        if (!element) return;
+        
+        // Remove existing highlights
+        const allHighlighted = document.querySelectorAll('[name*="ddl-nav-highlight"]');
+        allHighlighted.forEach(el => {
+            CustomControl.nameListRemove(el, 'ddl-nav-highlight');
+        });
+        
+        // Add highlight to current target
+        CustomControl.nameListAdd(element, 'ddl-nav-highlight');
+        
+        // Remove highlight after 2 seconds
+        setTimeout(() => {
+            CustomControl.nameListRemove(element, 'ddl-nav-highlight');
+        }, 2000);
+    },
+
+    /**
      * Update dropdown header to show selected items based on current selections.
      * @param {string} containerId - The specific dropdown container ID
      */
@@ -885,6 +1115,9 @@ export const CustomControl = {
             header.innerText = header.dataset.placeholder;
             CustomControl.nameListRemove(header, 'has-selections');
         }
+        
+        // Update navigation icon visibility after header update
+        CustomControl.updateMultiNavIconVisibility(containerId);
     },
 
     /**
@@ -2000,6 +2233,10 @@ export const CustomControl = {
         CustomControl.nameListRemove(optionsContainer, 'hidden');
         CustomControl.nameListAdd(ddlWrapper, 'open');
         
+        // Update navigation icon visibility when dropdown opens
+        const containerId = ddlWrapper.id.replace('_ddl', '');
+        CustomControl.updateMultiNavIconVisibility(containerId);
+        
         // Scroll to selected option after opening
         CustomControl.scrollToSelectedOption(optionsContainer, ddlWrapper);
     },
@@ -2012,6 +2249,10 @@ export const CustomControl = {
     closeDropdown: function (ddlWrapper, optionsContainer) {
         CustomControl.nameListAdd(optionsContainer, 'hidden');
         CustomControl.nameListRemove(ddlWrapper, 'open');
+        
+        // Hide navigation icon when dropdown closes
+        const containerId = ddlWrapper.id.replace('_ddl', '');
+        CustomControl.updateMultiNavIconVisibility(containerId);
     },
 
     /**
@@ -2028,10 +2269,17 @@ export const CustomControl = {
         const optionsContainer = CustomControl.createOptionsContainer();
 
         // Populate options container with buttons and search box
-        CustomControl.populateOptionsContainer(optionsContainer, settings);
+        const { hasMultiSelect, hasSelectAllBtn, hasClearAllBtn, hasSearch } = settings.flags;
+        CustomControl.populateOptionsContainer(optionsContainer, hasMultiSelect, hasSelectAllBtn, hasClearAllBtn, hasSearch, settings.containerId);
 
         // Render JSON options into dropdown
-        CustomControl.renderOptions(settings.data, optionsContainer, settings);
+        CustomControl.renderOptions(settings.data, optionsContainer, hasMultiSelect, settings.flags.hasTreeView, hasClearAllBtn, settings.placeholder, settings.containerId);
+
+        // Add multi-select navigation icon if multi-select is enabled
+        if (hasMultiSelect) {
+            const navIcon = CustomControl.createMultiNavIcon(settings.containerId);
+            optionsContainer.appendChild(navIcon);
+        }
 
         // Assemble dropdown structure
         ddlWrapper.appendChild(header);
@@ -2042,7 +2290,7 @@ export const CustomControl = {
         CustomControl.addEventListeners(ddlWrapper, header, optionsContainer);
 
         // Add checkbox event listeners if multiSelect is enabled
-        if (settings.flags.multiSelect.enabled) {
+        if (hasMultiSelect) {
             CustomControl.addCheckboxEventListeners(optionsContainer);
         }
 

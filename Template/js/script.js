@@ -41,7 +41,7 @@ async function init() {
         placeholder: "اختر المنطقة...",
         data: data,
         flags: {
-            search: { enabled: "true" }
+            hasSearch: true
         }
     })
 
@@ -51,8 +51,8 @@ async function init() {
         placeholder: "اختر المدينة...",
         data: data,
         flags: {
-            search: { enabled: true },
-            treeView: { enabled: true },
+            hasSearch: true,
+            hasTreeView: true
         }
     })
 
@@ -62,10 +62,10 @@ async function init() {
         placeholder: "اختر المناطق...",
         data: data,
         flags: {
-            search: { enabled: true },
-            multiSelect: { enabled: true },
-            selectAllBtn: { enabled: true },
-            clearAllBtn: { enabled: true }
+            hasSearch: true,
+            hasMultiSelect: true,
+            hasSelectAllBtn: true,
+            hasClearAllBtn: true
         }
     })
 
@@ -75,11 +75,11 @@ async function init() {
         placeholder: "اختر المدن...",
         data: data,
         flags: {
-            search: { enabled: true },
-            multiSelect: { enabled: true },
-            treeView: { enabled: true },
-            selectAllBtn: { enabled: true },
-            clearAllBtn: { enabled: true }
+            hasSearch: true,
+            hasMultiSelect: true,
+            hasTreeView: true,
+            hasSelectAllBtn: true,
+            hasClearAllBtn: true
         }
     })
 
