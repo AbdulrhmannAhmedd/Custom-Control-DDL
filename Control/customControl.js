@@ -9,6 +9,36 @@ export const CustomControl = {
      */
 
     /**
+     * Create DOM element with common properties (reduces duplication).
+     * @param {string} tagName - HTML tag name (div, input, button, span, etc.)
+     * @param {string} nameAttr - Value for name attribute
+     * @param {Object} options - Optional properties {id, innerText, type, dataset, className, etc.}
+     * @returns {HTMLElement} Created element
+     */
+    createElement: function(tagName, nameAttr, options = {}) {
+        const element = document.createElement(tagName);
+        element.setAttribute('name', nameAttr);
+        
+        // Apply optional properties
+        if (options.id) element.id = options.id;
+        if (options.innerText) element.innerText = options.innerText;
+        if (options.innerHTML) element.innerHTML = options.innerHTML;
+        if (options.type) element.type = options.type; // for inputs
+        if (options.placeholder) element.placeholder = options.placeholder;
+        if (options.title) element.title = options.title;
+        if (options.className) element.className = options.className;
+        
+        // Apply dataset properties
+        if (options.dataset) {
+            Object.keys(options.dataset).forEach(key => {
+                element.dataset[key] = options.dataset[key];
+            });
+        }
+        
+        return element;
+    },
+
+    /**
      ** nameListAdd(): Gets elements' name attribute and split its parts by spaces, store them in array, if the nameValue is not in the array, add it to the array, and set the name attribute to the array joined by spaces
      * @param {HTMLElement} element - The element to add
      * @param {string} nameValue - The name attribute value to add
@@ -158,8 +188,8 @@ export const CustomControl = {
      *           hasClearAllBtn: true    // ONLY literal true or false
      *        }
      *        STRICT TYPE SAFETY:
-     *        ✅ Valid: true, false, undefined (defaults to false)
-     *        ❌ Invalid: 1, 0, "yes", "", [], {}, null, etc. (all default to false with warning)
+     *        Valid: true, false, undefined (defaults to false)
+     *        Invalid: 1, 0, "yes", "", [], {}, null, etc. (all default to false with warning)
      */
     initialize: function (params) {
         //* Validation: Ensure container exists
@@ -216,25 +246,24 @@ export const CustomControl = {
 
     /**
      * Create main dropdown wrapper element.
-     * @param {Object} settings - Settings object for this instance
+     * @param {string} containerId - Container ID for this instance
      * @returns {HTMLElement} Dropdown wrapper element
      */
-    createDropdownWrapper: function (settings) {
-        const ddlWrapper = document.createElement("div");
-        ddlWrapper.setAttribute('name', 'custom-ddl');
-        ddlWrapper.id = `${settings.containerId}_ddl`;
-        return ddlWrapper;
+    createDropdownWrapper: function (containerId) {
+        return CustomControl.createElement('div', 'custom-ddl', {
+            id: `${containerId}_ddl`
+        });
     },
 
     /**
      * Create dropdown header with placeholder text.
+     * @param {string} placeholder - Placeholder text to display
      * @returns {HTMLElement} Header element
      */
-    createHeader: function (settings) {
-        const header = document.createElement("div");
-        header.setAttribute('name', 'ddl-header');
-        header.innerText = settings.placeholder;
-        return header;
+    createHeader: function (placeholder) {
+        return CustomControl.createElement('div', 'ddl-header', {
+            innerText: placeholder
+        });
     },
 
     /**
@@ -242,9 +271,7 @@ export const CustomControl = {
      * @returns {HTMLElement} Options container element
      */
     createOptionsContainer: function () {
-        const optionsContainer = document.createElement("div");
-        optionsContainer.setAttribute('name', 'ddl-options hidden'); //+ hidden until click
-        return optionsContainer;
+        return CustomControl.createElement('div', 'ddl-options hidden');
     },
 
     /**
@@ -253,13 +280,11 @@ export const CustomControl = {
      * @returns {HTMLElement} Navigation icon element
      */
     createMultiNavIcon: function (containerId) {
-        const navIcon = document.createElement("div");
-        navIcon.setAttribute('name', 'ddl-multi-nav-icon');
-        navIcon.innerHTML = "↓";
-        navIcon.title = "الانتقال إلى التحديد التالي";
-        
-        // Store container ID for navigation
-        navIcon.dataset.containerId = containerId;
+        const navIcon = CustomControl.createElement('div', 'ddl-multi-nav-icon', {
+            innerHTML: "↓",
+            title: "الانتقال إلى التحديد التالي",
+            dataset: { containerId: containerId }
+        });
         
         // Add click event listener
         navIcon.addEventListener('click', function(e) {
@@ -282,18 +307,16 @@ export const CustomControl = {
             return null;
         }
         
-            const btnSelectAll = document.createElement("button");
-            btnSelectAll.innerText = "تحديد الكل";
-            btnSelectAll.setAttribute('name', 'ddl-btn select-all');
-        
-        // Store container ID in button for reliable access
-        btnSelectAll.dataset.containerId = containerId;
+        const btnSelectAll = CustomControl.createElement('button', 'ddl-btn select-all', {
+            innerText: "تحديد الكل",
+            dataset: { containerId: containerId }
+        });
         
         // Add event listener for Select All functionality
         btnSelectAll.addEventListener('click', function(e) {
             e.stopPropagation();
             const containerId = e.currentTarget.dataset.containerId;
-            CustomControl.handleSelectAll(containerId);
+            CustomControl.toggleAllSelections(containerId, true);
         });
         
         return btnSelectAll;
@@ -310,18 +333,16 @@ export const CustomControl = {
             return null;
         }
         
-            const btnClearAll = document.createElement("button");
-            btnClearAll.innerText = "مسح الكل";
-            btnClearAll.setAttribute('name', 'ddl-btn clear-all');
-        
-        // Store container ID in button for reliable access
-        btnClearAll.dataset.containerId = containerId;
+        const btnClearAll = CustomControl.createElement('button', 'ddl-btn clear-all', {
+            innerText: "مسح الكل",
+            dataset: { containerId: containerId }
+        });
         
         // Add event listener for Clear All functionality
         btnClearAll.addEventListener('click', function(e) {
             e.stopPropagation();
             const containerId = e.currentTarget.dataset.containerId;
-            CustomControl.handleClearAll(containerId);
+            CustomControl.toggleAllSelections(containerId, false);
         });
         
         return btnClearAll;
@@ -338,13 +359,11 @@ export const CustomControl = {
             return null;
         }
         
-            const searchBox = document.createElement("input");
-            searchBox.type = "text";
-            searchBox.placeholder = "بحث...";
-            searchBox.setAttribute('name', 'ddl-search');
-        
-        // Store container ID in search box for reliable access
-        searchBox.dataset.containerId = containerId;
+        const searchBox = CustomControl.createElement('input', 'ddl-search', {
+            type: 'text',
+            placeholder: "بحث...",
+            dataset: { containerId: containerId }
+        });
         
         // Add event listener for search functionality
         searchBox.addEventListener('input', function(e) {
@@ -443,12 +462,10 @@ export const CustomControl = {
         // Check if Clear All button is enabled - if so, make placeholder disabled
         const shouldDisable = hasMultiSelect && hasClearAllBtn;
         
-        const placeholderDiv = document.createElement("div");
-        placeholderDiv.setAttribute('name', 'ddl-placeholder-option');
-        placeholderDiv.innerText = placeholder;
-        
-        // Store container ID for potential click handler
-        placeholderDiv.dataset.containerId = containerId;
+        const placeholderDiv = CustomControl.createElement('div', 'ddl-placeholder-option', {
+            innerText: placeholder,
+            dataset: { containerId: containerId }
+        });
         
         if (shouldDisable) {
             // Disable placeholder when Clear All button exists
@@ -480,13 +497,11 @@ export const CustomControl = {
      * @returns {Object} Object containing parentDiv and parentLabel
      */
     createParentElement: function(parent, containerId) {
-        const parentDiv = document.createElement("div");
-        parentDiv.setAttribute('name', 'ddl-parent');
-
-        const parentLabel = document.createElement("div");
-        parentLabel.setAttribute('name', 'ddl-parent-label');
-        parentLabel.dataset.id = parent.id;
-        parentLabel.id = CustomControl.generateId(containerId, parent.id);
+        const parentDiv = CustomControl.createElement('div', 'ddl-parent');
+        const parentLabel = CustomControl.createElement('div', 'ddl-parent-label', {
+            id: CustomControl.generateId(containerId, parent.id),
+            dataset: { id: parent.id }
+        });
 
         return { parentDiv, parentLabel };
     },
@@ -499,20 +514,24 @@ export const CustomControl = {
      */
     setupParentContent: function(parentLabel, parent, hasMultiSelect) {
         if (hasMultiSelect) {
-            const parentCheckbox = document.createElement("input");
-            parentCheckbox.type = "checkbox";
-            parentCheckbox.setAttribute('name', 'ddl-checkbox parent-checkbox');
-            parentCheckbox.id = `${parentLabel.id}-checkbox`;
-            parentCheckbox.dataset.parentId = parent.id;
+            const parentCheckbox = CustomControl.createElement('input', 'ddl-checkbox parent-checkbox', {
+                type: 'checkbox',
+                id: `${parentLabel.id}-checkbox`,
+                dataset: { parentId: parent.id }
+            });
 
-            const parentText = document.createElement("span");
-            parentText.setAttribute('name', 'ddl-label-text');
-            parentText.innerText = parent.name;
+            const parentText = CustomControl.createElement('span', 'ddl-label-text', {
+                innerText: parent.name
+            });
 
             parentLabel.appendChild(parentCheckbox);
             parentLabel.appendChild(parentText);
         } else {
-            parentLabel.innerText = parent.name;
+            // Single selection - use consistent span structure
+            const parentText = CustomControl.createElement('span', 'ddl-label-text', {
+                innerText: parent.name
+            });
+            parentLabel.appendChild(parentText);
         }
     },
 
@@ -525,11 +544,13 @@ export const CustomControl = {
      * @returns {HTMLElement} Child element
      */
     createChildElement: function(child, parent, containerId, hasMultiSelect) {
-        const childDiv = document.createElement("div");
-        childDiv.setAttribute('name', 'ddl-child');
-        childDiv.dataset.id = child.id;
-        childDiv.dataset.parentId = parent.id;
-        childDiv.id = CustomControl.generateId(containerId, parent.id, child.id);
+        const childDiv = CustomControl.createElement('div', 'ddl-child', {
+            id: CustomControl.generateId(containerId, parent.id, child.id),
+            dataset: { 
+                id: child.id, 
+                parentId: parent.id 
+            }
+        });
 
         CustomControl.setupChildContent(childDiv, child, parent, hasMultiSelect);
         
@@ -545,31 +566,37 @@ export const CustomControl = {
      */
     setupChildContent: function(childDiv, child, parent, hasMultiSelect) {
         if (hasMultiSelect) {
-            const childCheckbox = document.createElement("input");
-            childCheckbox.type = "checkbox";
-            childCheckbox.setAttribute('name', 'ddl-checkbox child-checkbox');
-            childCheckbox.id = `${childDiv.id}-checkbox`;
-            childCheckbox.dataset.childId = child.id;
-            childCheckbox.dataset.parentId = parent.id;
+            const childCheckbox = CustomControl.createElement('input', 'ddl-checkbox child-checkbox', {
+                type: 'checkbox',
+                id: `${childDiv.id}-checkbox`,
+                dataset: { 
+                    childId: child.id,
+                    parentId: parent.id 
+                }
+            });
 
-            const childText = document.createElement("span");
-            childText.setAttribute('name', 'ddl-label-text');
-            childText.innerText = child.name;
+            const childText = CustomControl.createElement('span', 'ddl-label-text', {
+                innerText: child.name
+            });
 
             childDiv.appendChild(childCheckbox);
             childDiv.appendChild(childText);
         } else {
-            // Single selection - add text and click handler
-            childDiv.innerText = child.name;
+            // Single selection - use consistent span structure
+            const childText = CustomControl.createElement('span', 'ddl-label-text', {
+                innerText: child.name
+            });
+            childDiv.appendChild(childText);
+            
             CustomControl.nameListAdd(childDiv, "ddl-option");
-                            childDiv.addEventListener("click", function(e) {
-                    e.stopPropagation();
-                    const dropdownContainer = e.currentTarget.closest('[name~="custom-ddl"]');
-                    const containerId = dropdownContainer ? dropdownContainer.id.replace('_ddl', '') : null;
-                    if (containerId) {
-                        CustomControl.handleSingleSelection(e.currentTarget, containerId);
-                    }
-                });
+            childDiv.addEventListener("click", function(e) {
+                e.stopPropagation();
+                const dropdownContainer = e.currentTarget.closest('[name~="custom-ddl"]');
+                const containerId = dropdownContainer ? dropdownContainer.id.replace('_ddl', '') : null;
+                if (containerId) {
+                    CustomControl.handleSingleSelection(e.currentTarget, containerId);
+                }
+            });
         }
     },
 
@@ -581,8 +608,7 @@ export const CustomControl = {
      * @returns {HTMLElement} Children container element
      */
     createChildrenSection: function(parent, containerId, hasMultiSelect) {
-        const childrenContainer = document.createElement("div");
-        childrenContainer.setAttribute('name', 'ddl-children'); // expanded by default
+        const childrenContainer = CustomControl.createElement('div', 'ddl-children');
 
         parent.children.forEach(child => {
             const childDiv = CustomControl.createChildElement(child, parent, containerId, hasMultiSelect);
@@ -706,19 +732,19 @@ export const CustomControl = {
         const dropdownContainer = document.getElementById(`${containerId}_ddl`);
         if (!dropdownContainer) return;
 
-        // ✅ Clear all previous selections in this dropdown instance
+        // Clear all previous selections in this dropdown instance
         const allOptions = CustomControl.getAllByName(dropdownContainer, 'ddl-option');
         allOptions.forEach(option => {
             CustomControl.nameListRemove(option, 'ddl-selected');
         });
 
-        // ✅ Select the clicked option
+        // Select the clicked option
         CustomControl.nameListAdd(selectedElement, 'ddl-selected');
 
-        // ✅ Update dropdown header
+        // Update dropdown header
         CustomControl.updateDropdownHeader(containerId);
 
-        // ✅ Close dropdown after selection
+        // Close dropdown after selection
         const optionsContainer = CustomControl.getByName(dropdownContainer, 'ddl-options');
         if (optionsContainer) {
             CustomControl.closeDropdown(dropdownContainer, optionsContainer);
@@ -1457,7 +1483,6 @@ export const CustomControl = {
         return null;
     },
 
-
     /**
      ** Update visual highlighting for checkbox selections in multi-select mode.
      * @param {HTMLElement} element - The parent label or child element to highlight
@@ -1485,7 +1510,7 @@ export const CustomControl = {
 
         if (hasCheckboxes) {
             // Multi-select mode: clear all checkboxes
-            CustomControl.handleClearAll(containerId);
+            CustomControl.toggleAllSelections(containerId, false);
         } else {
             // Single-select mode: clear selected options
             const allOptions = CustomControl.getAllByName(dropdownContainer, 'ddl-option');
@@ -1660,89 +1685,8 @@ export const CustomControl = {
         const allCheckedChildren = allChildCheckboxes.filter(cb => cb.checked);
         console.log(`[CustomControl] Parent ${parentId}: ${allCheckedChildren.length}/${allChildCheckboxes.length} children checked`);
         
-        // ✅ Update dropdown header for this specific dropdown
+        // Update dropdown header for this specific dropdown
         CustomControl.updateDropdownHeader(containerId);
-    },
-
-    /**
-     ** Handle Select All button click - select all options.
-     * @param {string} containerId - Container ID for this dropdown instance
-     */
-    handleSelectAll: function (containerId) {
-        const dropdownContainer = document.getElementById(`${containerId}_ddl`);
-        if (!dropdownContainer) return;
-
-        // Check if there's an active search
-        const searchBox = CustomControl.getByName(dropdownContainer, 'ddl-search');
-        const hasActiveSearch = searchBox && searchBox.value.trim() !== '';
-        
-        // Check if this is tree view or flat view
-        const hasTreeView = CustomControl.getByName(dropdownContainer, 'ddl-children') !== null;
-
-        if (hasTreeView) {
-            // Tree view: select parent and child checkboxes
-            const parentCheckboxes = CustomControl.getAllByName(dropdownContainer, 'parent-checkbox');
-            const childCheckboxes = CustomControl.getAllByName(dropdownContainer, 'child-checkbox');
-            
-            let checkboxesToSelect;
-            
-            if (hasActiveSearch) {
-                // During search: Only select visible checkboxes
-                const visibleParentCheckboxes = parentCheckboxes.filter(cb => {
-                    const parentElement = cb.closest('[name~="ddl-parent"]');
-                    return parentElement && !CustomControl.nameListContains(parentElement, 'ddl-hidden');
-                });
-                
-                const visibleChildCheckboxes = childCheckboxes.filter(cb => {
-                    const childElement = cb.closest('[name~="ddl-child"]');
-                    return childElement && !CustomControl.nameListContains(childElement, 'ddl-hidden');
-                });
-                
-                checkboxesToSelect = [...visibleParentCheckboxes, ...visibleChildCheckboxes];
-            } else {
-                // No search: Select all checkboxes
-                checkboxesToSelect = [...parentCheckboxes, ...childCheckboxes];
-            }
-            
-            checkboxesToSelect.forEach(checkbox => {
-                if (!checkbox.checked) {
-                    checkbox.checked = true;
-                    // Trigger change event to update parent-child relationships
-                    checkbox.dispatchEvent(new Event('change', { bubbles: true }));
-                }
-            });
-        } else {
-            // Flat view: select parent checkboxes only
-            const parentCheckboxes = CustomControl.getAllByName(dropdownContainer, 'parent-checkbox');
-            
-            let checkboxesToSelect;
-            
-            if (hasActiveSearch) {
-                // During search: Only select visible parent checkboxes
-                checkboxesToSelect = parentCheckboxes.filter(cb => {
-                    const parentElement = cb.closest('[name~="ddl-parent"]');
-                    return parentElement && !CustomControl.nameListContains(parentElement, 'ddl-hidden');
-                });
-            } else {
-                // No search: Select all parent checkboxes
-                checkboxesToSelect = parentCheckboxes;
-            }
-            
-            checkboxesToSelect.forEach(checkbox => {
-                if (!checkbox.checked) {
-                    checkbox.checked = true;
-                    // Update highlighting for parent element
-                    const parentElement = checkbox.closest('[name~="ddl-parent-label"]');
-                    if (parentElement) {
-                        CustomControl.updateCheckboxHighlight(parentElement, true);
-                    }
-                }
-            });
-        }
-
-        // Update dropdown header
-        CustomControl.updateDropdownHeader(containerId);
-        console.log(`[CustomControl] Select All executed for ${containerId} - ${hasActiveSearch ? 'visible items only' : 'all items'}`);
     },
 
     /**
@@ -1867,30 +1811,36 @@ export const CustomControl = {
         });
     },
 
+
     /**
-     ** Handle Clear All button click - clear all options.
+     ** Universal method to toggle all selections (replaces duplicate Select All / Clear All logic).
      * @param {string} containerId - Container ID for this dropdown instance
+     * @param {boolean} shouldSelect - True to select all, false to clear all
+     * @param {boolean} respectSearch - Whether to respect active search filter (default: true)
+     * @param {boolean} hasTreeView - Whether dropdown has tree view (auto-detected if not provided)
      */
-    handleClearAll: function (containerId) {
+    toggleAllSelections: function (containerId, shouldSelect, respectSearch = true, hasTreeView = null) {
         const dropdownContainer = document.getElementById(`${containerId}_ddl`);
         if (!dropdownContainer) return;
 
-        // Check if there's an active search
+        // Auto-detect search state
         const searchBox = CustomControl.getByName(dropdownContainer, 'ddl-search');
-        const hasActiveSearch = searchBox && searchBox.value.trim() !== '';
+        const hasActiveSearch = respectSearch && searchBox && searchBox.value.trim() !== '';
         
-        // Check if this is tree view or flat view
-        const hasTreeView = CustomControl.getByName(dropdownContainer, 'ddl-children') !== null;
+        // Auto-detect tree view if not provided
+        if (hasTreeView === null) {
+            hasTreeView = CustomControl.getByName(dropdownContainer, 'ddl-children') !== null;
+        }
 
         if (hasTreeView) {
-            // Tree view: clear parent and child checkboxes
+            // Tree view: handle parent and child checkboxes
             const parentCheckboxes = CustomControl.getAllByName(dropdownContainer, 'parent-checkbox');
             const childCheckboxes = CustomControl.getAllByName(dropdownContainer, 'child-checkbox');
             
-            let checkboxesToClear;
+            let checkboxesToProcess;
             
             if (hasActiveSearch) {
-                // During search: Only clear visible checkboxes
+                // During search: Only process visible checkboxes
                 const visibleParentCheckboxes = parentCheckboxes.filter(cb => {
                     const parentElement = cb.closest('[name~="ddl-parent"]');
                     return parentElement && !CustomControl.nameListContains(parentElement, 'ddl-hidden');
@@ -1901,51 +1851,65 @@ export const CustomControl = {
                     return childElement && !CustomControl.nameListContains(childElement, 'ddl-hidden');
                 });
                 
-                checkboxesToClear = [...visibleParentCheckboxes, ...visibleChildCheckboxes];
+                checkboxesToProcess = [...visibleParentCheckboxes, ...visibleChildCheckboxes];
             } else {
-                // No search: Clear all checkboxes
-                checkboxesToClear = [...parentCheckboxes, ...childCheckboxes];
+                // No search: Process all checkboxes
+                checkboxesToProcess = [...parentCheckboxes, ...childCheckboxes];
             }
             
-            checkboxesToClear.forEach(checkbox => {
-                if (checkbox.checked || checkbox.indeterminate) {
-                    checkbox.checked = false;
-                    checkbox.indeterminate = false;
+            checkboxesToProcess.forEach(checkbox => {
+                const needsUpdate = shouldSelect ? !checkbox.checked : (checkbox.checked || checkbox.indeterminate);
+                
+                if (needsUpdate) {
+                    checkbox.checked = shouldSelect;
+                    if (!shouldSelect) {
+                        checkbox.indeterminate = false;
+                    }
                     // Trigger change event to update parent-child relationships
                     checkbox.dispatchEvent(new Event('change', { bubbles: true }));
                 }
             });
         } else {
-            // Flat view: clear parent checkboxes only
+            // Flat view: handle parent checkboxes only
             const parentCheckboxes = CustomControl.getAllByName(dropdownContainer, 'parent-checkbox');
             
-            let checkboxesToClear;
+            let checkboxesToProcess;
             
             if (hasActiveSearch) {
-                // During search: Only clear visible parent checkboxes
-                checkboxesToClear = parentCheckboxes.filter(cb => {
+                // During search: Only process visible parent checkboxes
+                checkboxesToProcess = parentCheckboxes.filter(cb => {
                     const parentElement = cb.closest('[name~="ddl-parent"]');
                     return parentElement && !CustomControl.nameListContains(parentElement, 'ddl-hidden');
                 });
             } else {
-                // No search: Clear all parent checkboxes
-                checkboxesToClear = parentCheckboxes;
+                // No search: Process all parent checkboxes
+                checkboxesToProcess = parentCheckboxes;
             }
             
-            checkboxesToClear.forEach(checkbox => {
-                checkbox.checked = false;
-                checkbox.indeterminate = false;
-                // Update highlighting for parent element
-                const parentElement = checkbox.closest('[name~="ddl-parent-label"]');
-                if (parentElement) {
-                    CustomControl.updateCheckboxHighlight(parentElement, false);
+            checkboxesToProcess.forEach(checkbox => {
+                const needsUpdate = shouldSelect ? !checkbox.checked : checkbox.checked;
+                
+                if (needsUpdate) {
+                    checkbox.checked = shouldSelect;
+                    if (!shouldSelect) {
+                        checkbox.indeterminate = false;
+                    }
+                    
+                    // Update highlighting for parent element
+                    const parentElement = checkbox.closest('[name~="ddl-parent-label"]');
+                    if (parentElement) {
+                        CustomControl.updateCheckboxHighlight(parentElement, shouldSelect);
+                    }
                 }
             });
         }
 
         // Update dropdown header
         CustomControl.updateDropdownHeader(containerId);
-        console.log(`[CustomControl] Clear All executed for ${containerId} - ${hasActiveSearch ? 'visible items only' : 'all items'}`);
+        
+        const action = shouldSelect ? 'Select All' : 'Clear All';
+        const scope = hasActiveSearch ? 'visible items only' : 'all items';
+        console.log(`[CustomControl] ${action} executed for ${containerId} - ${scope}`);
     },
 
     /**
@@ -2264,8 +2228,8 @@ export const CustomControl = {
         CustomControl.clearContainer(container);
 
         // Create dropdown components
-        const ddlWrapper = CustomControl.createDropdownWrapper(settings);
-        const header = CustomControl.createHeader(settings);
+        const ddlWrapper = CustomControl.createDropdownWrapper(settings.containerId);
+        const header = CustomControl.createHeader(settings.placeholder);
         const optionsContainer = CustomControl.createOptionsContainer();
 
         // Populate options container with buttons and search box
